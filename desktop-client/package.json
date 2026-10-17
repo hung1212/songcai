@@ -1,0 +1,84 @@
+{
+  "name": "songcai-desktop",
+  "version": "0.6.25",
+  "private": true,
+  "description": "松财 · 本地投注算账客户端",
+  "type": "module",
+  "main": "electron/main.cjs",
+  "scripts": {
+    "dev": "vite --host 127.0.0.1 --port 5173 --strictPort",
+    "build": "vite build",
+    "build:native": "node scripts/build-native.cjs",
+    "start": "npm run build && electron .",
+    "test": "node --test tests/*.test.js",
+    "install:mac-preview": "node scripts/install-mac-preview.cjs",
+    "test:mac-app": "node scripts/check-mac-startup.cjs",
+    "audit:samples": "node scripts/audit-samples.js",
+    "pack": "npm run build && electron-builder --dir",
+    "dist:mac": "npm run build && electron-builder --mac",
+    "dist:win": "npm run build && electron-builder --win",
+    "test:native-ocr": "node scripts/check-native-ocr.cjs"
+  },
+  "engines": {
+    "node": ">=22.19"
+  },
+  "dependencies": {
+    "lunar-javascript": "1.7.7",
+    "vue": "3.5.22"
+  },
+  "devDependencies": {
+    "@vitejs/plugin-vue": "6.0.1",
+    "electron": "38.2.0",
+    "electron-builder": "26.0.12",
+    "vite": "7.1.7"
+  },
+  "build": {
+    "appId": "com.songcai.desktop",
+    "productName": "松财",
+    "directories": {
+      "output": "release"
+    },
+    "files": [
+      "dist/**/*",
+      "electron/**/*",
+      "src/core/**/*",
+      "package.json"
+    ],
+    "extraResources": [
+      {
+        "from": "native",
+        "to": "native",
+        "filter": [
+          "bin/**/*",
+          "*.ps1"
+        ]
+      }
+    ],
+    "mac": {
+      "category": "public.app-category.finance",
+      "target": [
+        {
+          "target": "dmg",
+          "arch": [
+            "arm64",
+            "x64"
+          ]
+        }
+      ]
+    },
+    "win": {
+      "target": [
+        {
+          "target": "nsis",
+          "arch": [
+            "x64"
+          ]
+        }
+      ]
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true
+    }
+  }
+}

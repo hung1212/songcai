@@ -1,0 +1,13 @@
+node_modules/
+dist/
+release/
+.DS_Store
+*.log
+native/bin/
+
+# Local analysis exports may include account settings.
+/analysis/
+
+# Generated verification output; retain the synthetic regression fixture.
+/reports/*
+!/reports/parser-structure-audit-2026-10-06.json

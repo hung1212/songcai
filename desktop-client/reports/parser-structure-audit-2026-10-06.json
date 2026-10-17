@@ -1,0 +1,714 @@
+{
+  "date": "2026-10-06",
+  "version": "0.4.4",
+  "scope": "read-only in-memory parser audit of synthetic fixtures; no user database/API calls or client changes",
+  "cases": 16,
+  "mismatches": 9,
+  "results": [
+    {
+      "id": "user-colon",
+      "text": "新澳奥  四肖中特 ：龙牛狗蛇 200",
+      "expected": {
+        "playType": "special-zodiac-any",
+        "totalCents": 20000,
+        "markets": [
+          "新"
+        ]
+      },
+      "actual": {
+        "totalCents": 320000,
+        "bets": [
+          {
+            "player": "新澳奥  四肖中特",
+            "playerId": "新澳奥  四肖中特",
+            "play": "特码",
+            "playType": "special-number",
+            "markets": [
+              "新"
+            ],
+            "basis": "每号",
+            "count": 16,
+            "totalCents": 320000
+          }
+        ],
+        "issues": [],
+        "aiDoubtLines": [],
+        "aiAllInput": [
+          {
+            "body": "龙牛狗蛇 200",
+            "context": {
+              "markets": [
+                "新"
+              ],
+              "play": ""
+            }
+          }
+        ],
+        "title": "新澳奥  四肖中特",
+        "header": {
+          "name": "新澳奥  四肖中特",
+          "body": "龙牛狗蛇 200"
+        }
+      },
+      "matchesExpected": false
+    },
+    {
+      "id": "user-no-colon",
+      "text": "新澳奥  四肖中特 龙牛狗蛇 200",
+      "expected": {
+        "playType": "special-zodiac-any",
+        "totalCents": 20000,
+        "markets": [
+          "新"
+        ]
+      },
+      "actual": {
+        "totalCents": 20000,
+        "bets": [
+          {
+            "player": "本单玩家",
+            "playerId": "document:audit:player",
+            "play": "四肖中特",
+            "playType": "special-zodiac-any",
+            "markets": [
+              "新"
+            ],
+            "basis": "整项",
+            "count": 1,
+            "totalCents": 20000
+          }
+        ],
+        "issues": [],
+        "aiDoubtLines": [],
+        "aiAllInput": [
+          {
+            "body": "新澳奥  四肖中特 龙牛狗蛇 200",
+            "context": {
+              "markets": [
+                "新"
+              ],
+              "play": ""
+            }
+          }
+        ],
+        "title": "未命名账目",
+        "header": null
+      },
+      "matchesExpected": true
+    },
+    {
+      "id": "chinese-play-header",
+      "text": "四肖中特：龙牛狗蛇200",
+      "expected": {
+        "playType": "special-zodiac-any",
+        "totalCents": 20000,
+        "markets": [
+          "新"
+        ]
+      },
+      "actual": {
+        "totalCents": 320000,
+        "bets": [
+          {
+            "player": "四肖中特",
+            "playerId": "四肖中特",
+            "play": "特码",
+            "playType": "special-number",
+            "markets": [
+              "新"
+            ],
+            "basis": "每号",
+            "count": 16,
+            "totalCents": 320000
+          }
+        ],
+        "issues": [],
+        "aiDoubtLines": [],
+        "aiAllInput": [
+          {
+            "body": "龙牛狗蛇200",
+            "context": {
+              "markets": [
+                "新"
+              ],
+              "play": ""
+            }
+          }
+        ],
+        "title": "四肖中特",
+        "header": {
+          "name": "四肖中特",
+          "body": "龙牛狗蛇200"
+        }
+      },
+      "matchesExpected": false
+    },
+    {
+      "id": "digit-play-header",
+      "text": "4肖中特:龙牛狗蛇200",
+      "expected": {
+        "playType": "special-zodiac-any",
+        "totalCents": 20000,
+        "markets": [
+          "新"
+        ]
+      },
+      "actual": {
+        "totalCents": 20000,
+        "bets": [
+          {
+            "player": "本单玩家",
+            "playerId": "document:audit:player",
+            "play": "4肖中特",
+            "playType": "special-zodiac-any",
+            "markets": [
+              "新"
+            ],
+            "basis": "整项",
+            "count": 1,
+            "totalCents": 20000
+          }
+        ],
+        "issues": [],
+        "aiDoubtLines": [],
+        "aiAllInput": [
+          {
+            "body": "4肖中特:龙牛狗蛇200",
+            "context": {
+              "markets": [
+                "新"
+              ],
+              "play": ""
+            }
+          }
+        ],
+        "title": "未命名账目",
+        "header": null
+      },
+      "matchesExpected": true
+    },
+    {
+      "id": "market-ascii-colon",
+      "text": "新 四肖中特:龙牛狗蛇200",
+      "expected": {
+        "playType": "special-zodiac-any",
+        "totalCents": 20000,
+        "markets": [
+          "新"
+        ]
+      },
+      "actual": {
+        "totalCents": 320000,
+        "bets": [
+          {
+            "player": "新 四肖中特",
+            "playerId": "新 四肖中特",
+            "play": "特码",
+            "playType": "special-number",
+            "markets": [
+              "新"
+            ],
+            "basis": "每号",
+            "count": 16,
+            "totalCents": 320000
+          }
+        ],
+        "issues": [],
+        "aiDoubtLines": [],
+        "aiAllInput": [
+          {
+            "body": "龙牛狗蛇200",
+            "context": {
+              "markets": [
+                "新"
+              ],
+              "play": ""
+            }
+          }
+        ],
+        "title": "新 四肖中特",
+        "header": {
+          "name": "新 四肖中特",
+          "body": "龙牛狗蛇200"
+        }
+      },
+      "matchesExpected": false
+    },
+    {
+      "id": "play-header-next-line",
+      "text": "新 四肖中特\n龙牛狗蛇200",
+      "expected": {
+        "playType": "special-zodiac-any",
+        "totalCents": 20000,
+        "markets": [
+          "新"
+        ]
+      },
+      "actual": {
+        "totalCents": 320000,
+        "bets": [
+          {
+            "player": "本单玩家",
+            "playerId": "document:audit:player",
+            "play": "特码",
+            "playType": "special-number",
+            "markets": [
+              "新"
+            ],
+            "basis": "每号",
+            "count": 16,
+            "totalCents": 320000
+          }
+        ],
+        "issues": [],
+        "aiDoubtLines": [
+          2
+        ],
+        "aiAllInput": [
+          {
+            "body": "新 四肖中特",
+            "context": {
+              "markets": [
+                "新"
+              ],
+              "play": ""
+            }
+          },
+          {
+            "body": "龙牛狗蛇200",
+            "context": {
+              "markets": [
+                "新"
+              ],
+              "play": "四肖中特"
+            }
+          }
+        ],
+        "title": "未命名账目",
+        "header": null
+      },
+      "matchesExpected": false
+    },
+    {
+      "id": "old-market-colon",
+      "text": "旧 四肖中特：龙牛狗蛇200",
+      "expected": {
+        "playType": "special-zodiac-any",
+        "totalCents": 20000,
+        "markets": [
+          "旧"
+        ]
+      },
+      "actual": {
+        "totalCents": 320000,
+        "bets": [
+          {
+            "player": "旧 四肖中特",
+            "playerId": "旧 四肖中特",
+            "play": "特码",
+            "playType": "special-number",
+            "markets": [
+              "新"
+            ],
+            "basis": "每号",
+            "count": 16,
+            "totalCents": 320000
+          }
+        ],
+        "issues": [],
+        "aiDoubtLines": [],
+        "aiAllInput": [
+          {
+            "body": "龙牛狗蛇200",
+            "context": {
+              "markets": [
+                "新"
+              ],
+              "play": ""
+            }
+          }
+        ],
+        "title": "旧 四肖中特",
+        "header": {
+          "name": "旧 四肖中特",
+          "body": "龙牛狗蛇200"
+        }
+      },
+      "matchesExpected": false
+    },
+    {
+      "id": "wave-colon",
+      "text": "新 红波：100",
+      "expected": {
+        "playType": "wave",
+        "totalCents": 10000,
+        "markets": [
+          "新"
+        ]
+      },
+      "actual": {
+        "totalCents": 0,
+        "bets": [],
+        "issues": [
+          "MISSING_SELECTION"
+        ],
+        "aiDoubtLines": [
+          1
+        ],
+        "aiAllInput": [
+          {
+            "body": "100",
+            "context": {
+              "markets": [
+                "新"
+              ],
+              "play": ""
+            }
+          }
+        ],
+        "title": "新 红波",
+        "header": {
+          "name": "新 红波",
+          "body": "100"
+        }
+      },
+      "matchesExpected": false
+    },
+    {
+      "id": "wave-standard",
+      "text": "新 红波100",
+      "expected": {
+        "playType": "wave",
+        "totalCents": 10000,
+        "markets": [
+          "新"
+        ]
+      },
+      "actual": {
+        "totalCents": 10000,
+        "bets": [
+          {
+            "player": "本单玩家",
+            "playerId": "document:audit:player",
+            "play": "波色",
+            "playType": "wave",
+            "markets": [
+              "新"
+            ],
+            "basis": "整项",
+            "count": 1,
+            "totalCents": 10000
+          }
+        ],
+        "issues": [],
+        "aiDoubtLines": [],
+        "aiAllInput": [
+          {
+            "body": "新 红波100",
+            "context": {
+              "markets": [
+                "新"
+              ],
+              "play": ""
+            }
+          }
+        ],
+        "title": "未命名账目",
+        "header": null
+      },
+      "matchesExpected": true
+    },
+    {
+      "id": "category-colon",
+      "text": "新 天肖：各100",
+      "expected": {
+        "playType": "special-number",
+        "totalCents": 250000,
+        "markets": [
+          "新"
+        ]
+      },
+      "actual": {
+        "totalCents": 0,
+        "bets": [],
+        "issues": [
+          "MISSING_SELECTION"
+        ],
+        "aiDoubtLines": [
+          1
+        ],
+        "aiAllInput": [
+          {
+            "body": "各100",
+            "context": {
+              "markets": [
+                "新"
+              ],
+              "play": ""
+            }
+          }
+        ],
+        "title": "新 天肖",
+        "header": {
+          "name": "新 天肖",
+          "body": "各100"
+        }
+      },
+      "matchesExpected": false
+    },
+    {
+      "id": "category-standard",
+      "text": "新 天肖各100",
+      "expected": {
+        "playType": "special-number",
+        "totalCents": 250000,
+        "markets": [
+          "新"
+        ]
+      },
+      "actual": {
+        "totalCents": 250000,
+        "bets": [
+          {
+            "player": "本单玩家",
+            "playerId": "document:audit:player",
+            "play": "特码",
+            "playType": "special-number",
+            "markets": [
+              "新"
+            ],
+            "basis": "每号",
+            "count": 25,
+            "totalCents": 250000
+          }
+        ],
+        "issues": [],
+        "aiDoubtLines": [],
+        "aiAllInput": [
+          {
+            "body": "新 天肖各100",
+            "context": {
+              "markets": [
+                "新"
+              ],
+              "play": ""
+            }
+          }
+        ],
+        "title": "未命名账目",
+        "header": null
+      },
+      "matchesExpected": true
+    },
+    {
+      "id": "attribute-colon",
+      "text": "新 大：100",
+      "expected": {
+        "playType": "attribute",
+        "totalCents": 10000,
+        "markets": [
+          "新"
+        ]
+      },
+      "actual": {
+        "totalCents": 0,
+        "bets": [],
+        "issues": [
+          "MISSING_SELECTION"
+        ],
+        "aiDoubtLines": [
+          1
+        ],
+        "aiAllInput": [
+          {
+            "body": "100",
+            "context": {
+              "markets": [
+                "新"
+              ],
+              "play": ""
+            }
+          }
+        ],
+        "title": "新 大",
+        "header": {
+          "name": "新 大",
+          "body": "100"
+        }
+      },
+      "matchesExpected": false
+    },
+    {
+      "id": "attribute-standard",
+      "text": "新 大100",
+      "expected": {
+        "playType": "attribute",
+        "totalCents": 10000,
+        "markets": [
+          "新"
+        ]
+      },
+      "actual": {
+        "totalCents": 10000,
+        "bets": [
+          {
+            "player": "本单玩家",
+            "playerId": "document:audit:player",
+            "play": "大小单双 / 合数",
+            "playType": "attribute",
+            "markets": [
+              "新"
+            ],
+            "basis": "整项",
+            "count": 1,
+            "totalCents": 10000
+          }
+        ],
+        "issues": [],
+        "aiDoubtLines": [],
+        "aiAllInput": [
+          {
+            "body": "新 大100",
+            "context": {
+              "markets": [
+                "新"
+              ],
+              "play": ""
+            }
+          }
+        ],
+        "title": "未命名账目",
+        "header": null
+      },
+      "matchesExpected": true
+    },
+    {
+      "id": "real-player-header",
+      "text": "小明：旧四肖中特龙牛狗蛇200",
+      "expected": {
+        "playType": "special-zodiac-any",
+        "totalCents": 20000,
+        "markets": [
+          "旧"
+        ]
+      },
+      "actual": {
+        "totalCents": 20000,
+        "bets": [
+          {
+            "player": "小明",
+            "playerId": "小明",
+            "play": "四肖中特",
+            "playType": "special-zodiac-any",
+            "markets": [
+              "旧"
+            ],
+            "basis": "整项",
+            "count": 1,
+            "totalCents": 20000
+          }
+        ],
+        "issues": [],
+        "aiDoubtLines": [],
+        "aiAllInput": [
+          {
+            "body": "旧四肖中特龙牛狗蛇200",
+            "context": {
+              "markets": [
+                "旧"
+              ],
+              "play": ""
+            }
+          }
+        ],
+        "title": "小明",
+        "header": {
+          "name": "小明",
+          "body": "旧四肖中特龙牛狗蛇200"
+        }
+      },
+      "matchesExpected": true
+    },
+    {
+      "id": "fullwidth-space-number",
+      "text": "新澳奥　四肖中特：龙牛狗蛇２００",
+      "expected": {
+        "playType": "special-zodiac-any",
+        "totalCents": 20000,
+        "markets": [
+          "新"
+        ]
+      },
+      "actual": {
+        "totalCents": 320000,
+        "bets": [
+          {
+            "player": "新澳奥　四肖中特",
+            "playerId": "新澳奥　四肖中特",
+            "play": "特码",
+            "playType": "special-number",
+            "markets": [
+              "新"
+            ],
+            "basis": "每号",
+            "count": 16,
+            "totalCents": 320000
+          }
+        ],
+        "issues": [],
+        "aiDoubtLines": [],
+        "aiAllInput": [],
+        "title": "新澳奥　四肖中特",
+        "header": {
+          "name": "新澳奥　四肖中特",
+          "body": "龙牛狗蛇２００"
+        }
+      },
+      "matchesExpected": false
+    },
+    {
+      "id": "semicolon",
+      "text": "新 四肖中特；龙牛狗蛇200",
+      "expected": {
+        "playType": "special-zodiac-any",
+        "totalCents": 20000,
+        "markets": [
+          "新"
+        ]
+      },
+      "actual": {
+        "totalCents": 20000,
+        "bets": [
+          {
+            "player": "本单玩家",
+            "playerId": "document:audit:player",
+            "play": "四肖中特",
+            "playType": "special-zodiac-any",
+            "markets": [
+              "新"
+            ],
+            "basis": "整项",
+            "count": 1,
+            "totalCents": 20000
+          }
+        ],
+        "issues": [],
+        "aiDoubtLines": [],
+        "aiAllInput": [
+          {
+            "body": "新 四肖中特；龙牛狗蛇200",
+            "context": {
+              "markets": [
+                "新"
+              ],
+              "play": ""
+            }
+          }
+        ],
+        "title": "未命名账目",
+        "header": null
+      },
+      "matchesExpected": true
+    }
+  ]
+}

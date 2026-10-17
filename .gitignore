@@ -1,0 +1,19 @@
+# Local reference project (not a runtime dependency)
+/number-of-statistical-plug/
+
+# Operating system files and local configuration
+.DS_Store
+Thumbs.db
+.env
+.env.*
+!.env.example
+*.local
+
+# Local account databases, sidecars, and backups
+*.sqlite
+*.sqlite-*
+*.sqlite3
+*.sqlite3-*
+*.db
+*.db-*
+*.bak
