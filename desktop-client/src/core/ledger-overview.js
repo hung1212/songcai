@@ -20,7 +20,7 @@ export function ledgerOverview(documents,draws,settings,verification,drawDates) 
   const rows=documents.map(doc=>{
     const date=doc.rule?.date;
     if(!date)return {id:doc.id,name:doc.name,status:'pending',label:'待结算',netCents:null,stakeCents:0,payoutCents:0,refundCents:0,winCount:0,wins:[],issues:doc.issues||[],pending:1};
-    const result=settleDocuments([doc],draws,settings.odds,date,{drawDates,rebates:settings.rebates});
+    const result=settleDocuments([doc],draws,settings.odds,date,{drawDates,rebates:settings.rebates,playerOdds:settings.playerOdds});
     const wins=result.entries.filter(e=>e.status==='won').map(e=>({...e,fileId:doc.id}));
     return {id:doc.id,name:doc.name,date,...settlementBalance(result,verification,settings.odds),
       stakeCents:summarize([doc]).totalCents,payoutCents:result.payoutCents,rebateCents:result.rebateCents,payableCents:result.payableCents,refundCents:result.refundCents,

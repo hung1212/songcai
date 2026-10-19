@@ -2,7 +2,7 @@ import { ANIMALS, CN, MARKETS } from './rules.js';
 import {dottedAmounts,zodiacNumberAmounts,packageAmounts,perZodiacPackages} from './text-format.js';
 import { CATEGORY_ALIASES } from './classifications.js';
 
-export const PARSER_VERSION = 'parser-20261016-2';
+export const PARSER_VERSION = 'parser-20261018-1';
 export const COUNT_PATTERN = '(?:十[一二]?|[一二三四五六七八九两俩]|1[0-2]|[1-9])';
 const aliases = [];
 const add = (phrase, types, size, basis, canonical) => aliases.push({ phrase, types, size, basis, ...(canonical ? {canonical} : {}) });
@@ -140,7 +140,7 @@ export function marketTokens(raw) {
 }
 
 const selectionWords=[...new Set(CATEGORY_ALIASES.map(c=>c.alias))].sort((a,b)=>b.length-a.length).map(escape).join('|');
-const selectionPrefix=new RegExp(`^(?:${selectionWords}|[红蓝绿](?:波)?[单双大小]?(?:波)?|合[单双]|[金木水火土](?:行)?|[大小单双]|[${ANIMALS.join('')}]|\\d+(?:头|尾)?)`);
+const selectionPrefix=new RegExp(`^(?:${selectionWords}|[红蓝绿](?:波)?[单双大小]?(?:波)?|合[单双]|[金木水火土](?:行)?|[大小单双]|[${ANIMALS.join('')}](?:肖)?|\\d+(?:头|尾)?)`);
 const separators=/^[\s:：,，、。;；.()（）\[\]【】/+\-=]+/;
 function businessPrefix(name) {
   let rest=canonicalPlayText(name.normalize('NFKC')).replace(/\\/g, '/'), meaningful=false;

@@ -76,7 +76,7 @@ module.exports=async function installSettlement({electron,window:getWindow,ledge
       return syncPromise;
     },
     manual:input=>store.addDraws([drawCore.manualDraw(input)]),
-    preview:input=>{const data=inputs(input);return {inputHash:hash(data),result:core.settleDocuments(data.documents,data.draws,data.settings.odds,data.date,{drawDates:data.drawDates,rebates:data.settings.rebates}),draws:data.draws,settings:data.settings,inputs:data};},
+    preview:input=>{const data=inputs(input);return {inputHash:hash(data),result:core.settleDocuments(data.documents,data.draws,data.settings.odds,data.date,{drawDates:data.drawDates,rebates:data.settings.rebates,playerOdds:data.settings.playerOdds}),draws:data.draws,settings:data.settings,inputs:data};},
     save:input=>{if(input.reviewed!==true)throw new Error('请先核对开奖来源、期号、号码与账目范围');return store.saveSettlement(inputs(input),input.inputHash);},
     get:input=>store.getSettlement(input.id),
   };

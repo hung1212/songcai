@@ -59,7 +59,7 @@ test('特串拖号按农历切年展开四号或五号，重合号码不与自�
 
 test('特串其他未确认拖法、非法号码、计费冲突和缺金额继续待处理',()=>{
   for(const [text,code] of [
-    ['特串45 44拖鸡各10','DAN_TUO'],['特串45拖鸡兔各10','DAN_TUO'],['特串兔拖鸡各10','DAN_TUO'],
+    ['特串45 44拖鸡各10','DAN_TUO'],['特串45拖鸡兔各10','DAN_TUO'],['特串兔拖鸡猴各10','DAN_TUO'],
     ['特串复式45拖鸡各10','DAN_TUO'],['特串45胆拖鸡各10','DAN_TUO'],['45拖鸡各10','DAN_TUO'],
     ['特串00拖鸡各10','NUMBER_RANGE'],['特串50拖鸡各10','NUMBER_RANGE'],
     ['特串45拖鸡每肖10','BASIS_CONFLICT'],['特串45拖鸡各号10','BASIS_CONFLICT'],
@@ -93,7 +93,7 @@ test('AI保留特串固定号分组和单价，拒绝改号、扁平复式、二
   assert.throws(()=>validateCandidate({bets:[{...b,selection:'45鸡'}]},item,d),/分组/);
   assert.throws(()=>validateCandidate({bets:[{...b,play:'二中二'}]},item,d),/玩法/);
   assert.throws(()=>validateCandidate({bets:[{...b,amount:'40'}]},item,d),/金额/);
-  const unsupported=doc('特串兔拖鸡各10'),pending=reviewInput(unsupported).items[0];
+  const unsupported=doc('特串兔拖鸡猴各10'),pending=reviewInput(unsupported).items[0];
   assert.throws(()=>validateCandidate(candidate,pending,unsupported),/拖号分组未明确/);
 });
 

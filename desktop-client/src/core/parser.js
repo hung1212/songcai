@@ -58,7 +58,7 @@ function takePlay(input, inherited, allowDrag = false) {
     if (!plays.some(p => p.type === type && p.size === size)) plays.push({ type, label, size, basis });
   };
   let explicit = false;
-  if (/拖/.test(text) && !allowDrag) problem('DAN_TUO', '拖号范围不明确，请按组列出；支持三中二双号拖尾数、二中二或特串单号拖生肖、二连肖单肖或三连肖双肖拖多个生肖');
+  if (/拖/.test(text) && !allowDrag) problem('DAN_TUO', '拖号范围不明确，请按组列出；支持三中二双号拖尾数、二中二单尾拖生肖、二中二或特串单号拖生肖、特串单肖拖单肖、二连肖单肖或三连肖双肖拖多个生肖');
   const combined = new RegExp(`(${countPattern})肖中特`, 'g');
   text = text.replace(combined, (_, n) => { add('special-zodiac-any', `${n}肖中特`, chineseNumber(n), '整项'); return ' '; });
   if (!plays.length && /任中/.test(text)) {
@@ -141,7 +141,7 @@ function takePlay(input, inherited, allowDrag = false) {
   if (headParityPattern.test(text) && plays.some(p=>p.type==='special-number') && /(?:各|每)(?:肖|尾|组|注|连)/.test(text)) problem('BASIS_CONFLICT', '头数单双筛选按每号特码计费，请明确每号金额');
   explicit = plays.length > 0;
   if (!plays.length) {
-    const compatible = inherited && (!/zodiac/.test(inherited.type) || new RegExp(animalPattern).test(text)) && (!/linked/.test(inherited.type) || inherited.type === 'linked-tail' || inherited.type === 'linked-number-3-2' && /拖/.test(text) || !/头|尾/.test(text));
+    const compatible = inherited && (!/zodiac/.test(inherited.type) || new RegExp(animalPattern).test(text)) && (!/linked/.test(inherited.type) || inherited.type === 'linked-tail' || ['linked-number-3-2','linked-number-2-2'].includes(inherited.type) && /拖/.test(text) || !/头|尾/.test(text));
     if (compatible && (inherited.declaration || /^(?:flat-zodiac|flat-tail|flat-number|flat-any|linked-tail|linked-zodiac|linked-number-|not-hit)/.test(inherited.type)) && !/各号|每号|各数/.test(text)) plays = [{ ...inherited, inherited: true }];
     else {
       let selection='';try{selection=cleanEdges(takeAmount(text).selection).replace(/[:：]\s*$/, '').trim();}catch{}
@@ -341,8 +341,18 @@ function expandLinkedZodiacGroups(selection, play) {
 // and trailing selections into an unrestricted pool.
 function selectionDrag(selection, play, input, rule) {
   if (!/拖/.test(input)) return null;
-  const unsupported = '当前支持三中二双号拖尾数、二中二或特串单号拖生肖、二连肖单肖拖生肖及三连肖双肖拖生肖；其他拖法请明确列出每组';
+  const unsupported = '当前支持三中二双号拖尾数、二中二单尾拖生肖、二中二或特串单号拖生肖、特串单肖拖单肖、二连肖单肖拖生肖及三连肖双肖拖生肖；其他拖法请明确列出每组';
   if (/复式|胆拖/.test(input)) problem('DAN_TUO', unsupported);
+  if (play.type === 'linked-number-2-2' && /尾/.test(selection)) {
+    const match = cleanEdges(selection).match(new RegExp(`^(\\d{1,2})\\s*尾\\s*拖\\s*(${animalPattern})\\s*肖?\\s*[:：]?$`));
+    if (!match) problem('DAN_TUO', '二中二尾数拖生肖需一个0至9尾数拖一个生肖，例如“二中二5尾拖鸡各10”；请核对尾数和生肖');
+    const tail = Number(match[1]), animal = match[2];
+    if (tail > 9) problem('INVALID_TAIL', '二中二拖肖的尾数须为0–9，不能将两位数字拆成多个尾数');
+    if (/(?:各|每)(?:肖|尾|个?(?:号码?|数字|数))/.test(input)) problem('BASIS_CONFLICT', '二中二尾数拖生肖按每组号码计费，请写“各10”或“每组10”，不能按每号、每尾或每肖计费');
+    const anchors = tailNumbers(tail), numbers = [...rule.zodiac[animal]];
+    return {ruleId:'R46',tail,animal,anchors,numbers,excluded:anchors.filter(n=>numbers.includes(n)),
+      groups:anchors.flatMap(left=>numbers.filter(right=>right!==left).map(right=>[left,right]))};
+  }
   if (play.type === 'linked-number-3-2') {
     const match = cleanEdges(selection).match(/^(\d{1,2})\s*号?[\s,，.、\/·-]+(\d{1,2})\s*号?\s*拖\s*(\d{1,2})\s*尾\s*[:：]?$/);
     if (!match) problem('DAN_TUO', '三中二拖尾需两个固定号码拖一个0至9尾数，例如“11.33拖5尾，组10米”；请核对固定号码和尾数');
@@ -392,14 +402,18 @@ function selectionDrag(selection, play, input, rule) {
 // actual pair for settlement; flattening them would add same-zodiac wagers.
 // Explicit 复式 and explicit number groups retain their existing semantics.
 function specialPairZodiacCross(selection, play, input, rule) {
-  if (play.type !== 'special-pair' || play.combinationRequested || /复式|拖/.test(input)) return null;
-  const match = cleanEdges(selection).match(new RegExp(`^(${animalPattern})[\\s,，.、/·]*(${animalPattern})$`));
+  if (play.type !== 'special-pair' || play.combinationRequested || /复式|胆拖/.test(input)) return null;
+  const dragged = /拖/.test(input);
+  const pattern = dragged
+    ? `^(${animalPattern})\\s*肖?\\s*拖\\s*(${animalPattern})\\s*肖?\\s*[:：]?$`
+    : `^(${animalPattern})[\\s,，.、/·]*(${animalPattern})$`;
+  const match = cleanEdges(selection).match(new RegExp(pattern));
   if (!match) return null;
   const animals = match.slice(1);
   if (animals[0] === animals[1]) problem('GROUP_SIZE', '特串生肖对碰需要两个不同生肖，请核对生肖或明确列出号码分组');
   if (/(?:各|每)(?:肖|尾|个?(?:号码?|数字|数))/.test(input)) problem('BASIS_CONFLICT', '特串生肖对碰按每组号码计费，请写“每组2”或“各2”，不能按每肖或每号计费');
   const numbers = animals.map(animal => [...rule.zodiac[animal]]);
-  return { ruleId:'R43', animals, numbers, groups:numbers[0].flatMap(left => numbers[1].map(right => [left, right])) };
+  return { ruleId:dragged?'R45':'R43', animals, numbers, groups:numbers[0].flatMap(left => numbers[1].map(right => [left, right])) };
 }
 
 function resolveBet(input, state, rule) {
@@ -428,10 +442,10 @@ function resolveBet(input, state, rule) {
     const play = { ...declaredPlay };
     const tailSelection = expandLinkedTailGroups(amountSelection, play);
     const selection = expandLinkedZodiacGroups(tailSelection, play);
-    const drag = selectionDrag(selection, play, input, rule);
     const cross = specialPairZodiacCross(selection, play, input, rule);
+    const drag = cross ? null : selectionDrag(selection, play, input, rule);
     const grouped = drag || cross;
-    if (drag && parsed.plays.length !== 1) problem('DAN_TUO', '拖号请单独声明一种玩法，不混合其他玩法');
+    if (/拖/.test(input) && parsed.plays.length !== 1) problem('DAN_TUO', '拖号请单独声明一种玩法，不混合其他玩法');
     let dragDetail;
     if (drag) {const {groups,...detail}=drag;dragDetail=detail;}
     let crossDetail;

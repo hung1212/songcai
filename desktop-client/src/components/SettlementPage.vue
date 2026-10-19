@@ -65,7 +65,7 @@ onMounted(()=>action(load));
   <div class="page-body settlement-page">
     <section class="page-heading"><div><div class="eyebrow">DRAW RESULTS & PAYOUTS</div><h1>开奖与赔付</h1><p>按业务日期和市场核对开奖，计算每位玩家的应付金额。</p></div><button class="button" @click="showSettings=!showSettings">{{showSettings?'收起赔率设置':'赔率与来源设置'}}</button></section>
     <div class="settlement-toolbar"><label>结算业务日期<input v-model="date" type="date" min="2000-01-01" max="2100-12-31" :disabled="busy||settingsDirty" /></label><label>投注来源<select v-model="kind" :disabled="busy"><option value="current">当前账目</option><option value="ledger">该日期全部账目</option><option value="inbox" :disabled="!desktop">微信已入账记录</option></select></label><button class="button primary" :disabled="busy||!settings" @click="sync">{{busy?'处理中…':'获取开奖记录'}}</button><button class="button" :disabled="busy" @click="showManual=!showManual">手动录入开奖</button></div>
-    <button class="text-button rebate-settings-link" @click="$emit('rebates')">玩家退水设置 ↗</button>
+    <button class="text-button rebate-settings-link" @click="$emit('rebates')">玩家退水／赔率设置 ↗</button>
     <p class="settlement-note">各市场独立选择同一天的开奖，绝不把“最新一期”自动套到其他日期。当前账目只包含当前打开的原文；微信已入账记录单独计算，避免重复计入。</p>
     <p v-if="error" class="settlement-error" role="alert">{{error}}</p><p v-if="message" class="settlement-success" role="status">{{message}}</p>
     <section v-if="settings&&showSettings" class="panel settlement-settings">

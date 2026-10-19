@@ -45,7 +45,7 @@ function publishContext(){
   if(!alive)return;
   const inputs=saved.value?.inputs||basis.value;
   emit('context',{documentId:props.document.id,businessDate:props.document.businessDate,ready:!!inputs,history:viewingHistory.value,
-    draws:inputs?.draws||{},odds:inputs?.settings.odds||{},rebates:inputs?.settings.rebates,verification:inputs?.verification||{},drawDates:inputs?.drawDates});
+    draws:inputs?.draws||{},odds:inputs?.settings.odds||{},rebates:inputs?.settings.rebates,playerOdds:inputs?.settings.playerOdds,verification:inputs?.verification||{},drawDates:inputs?.drawDates});
 }
 function invalidateBasis(){operation++;basis.value=null;trial.value=null;saved.value=null;viewingHistory.value=false;publishContext();}
 function queueRecalculate(){clearTimeout(refreshTimer);if(!alive||!needsRecalculate.value)return;refreshTimer=setTimeout(()=>{if(busy.value)return;action(calculate);},450);}
@@ -92,7 +92,7 @@ onMounted(()=>{publishContext();return action(async()=>{await load(true);if(song
     <header><strong>{{document.name||'当前账目'}} · {{document.businessDate}}</strong><small>仅计算这一份账目，包含其中所有玩家和玩法。原文生肖展开仍按账目业务日期。</small></header>
     <button class="receipt-entry" @click="receiptOpen=true"><span><strong>本账目结算单</strong><small>总投注 · 中奖金额 × 赔率 · 赔付 · 盈亏</small></span><b>查看 / 截图 ↗</b></button>
     <LedgerReceipt v-model:open="receiptOpen" :document="document" :result="result" :inputs="saved?.inputs||trial?.inputs" :history="viewingHistory" :loading="busy||needsRecalculate" :latest-new-date="receiptDate" />
-    <button class="text-button rebate-settings-link" @click="$emit('rebates')">玩家退水设置 ↗</button>
+    <button class="text-button rebate-settings-link" @click="$emit('rebates')">玩家退水／赔率设置 ↗</button>
     <div class="winning-date"><button :class="['button',{primary:drawMode==='latest'}]" :disabled="busy" @click="action(latest)">各市场最近开奖</button><label>选择开奖日期<input type="date" v-model="drawDate" :max="today()" :disabled="busy" aria-label="本单开奖日期" @change="action(changeDate)" /></label><small>{{drawMode==='latest'?'新、旧、港分别采用各自最近一期；多来源一致时自动选核对列表第一来源。':'仅使用所选日期的开奖，缺期保留待结算。'}}</small></div>
     <div class="winning-actions"><button class="button primary" :disabled="busy" @click="action(load)">{{busy?'计算中…':'刷新本单中奖数据'}}</button><button class="button" :disabled="busy" @click="action(sync)">获取开奖</button><button class="text-button" @click="$emit('settings')">赔率／开奖设置 ↗</button></div>
     <p v-if="error" class="winning-notice">{{error}}</p><p v-if="loaded&&!result&&!busy&&!error" class="winning-note">{{needsRecalculate?'原文已变更，正在更新本单中奖数据…':'请选择开奖并刷新本单中奖数据。'}}</p>

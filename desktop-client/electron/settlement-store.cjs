@@ -17,13 +17,13 @@ class SettlementStore {
     const previous=this.settings();
     if(['新','旧','港'].some(m=>!Array.isArray(previous.sources[m]))) {
       previous.sources=draws.normalizeSources(previous.sources,true);
-      this.db.prepare('UPDATE settings SET revision=?,payload=? WHERE id=1').run(previous.revision+1,JSON.stringify({sources:previous.sources,odds:previous.odds,rebates:previous.rebates||{}}));
+      this.db.prepare('UPDATE settings SET revision=?,payload=? WHERE id=1').run(previous.revision+1,JSON.stringify({sources:previous.sources,odds:previous.odds,rebates:previous.rebates||{},playerOdds:previous.playerOdds||{}}));
     }
   }
-  settings() {const row=this.db.prepare('SELECT * FROM settings WHERE id=1').get();return {rebates:{},...JSON.parse(row.payload),revision:row.revision};}
+  settings() {const row=this.db.prepare('SELECT * FROM settings WHERE id=1').get();return {rebates:{},playerOdds:{},...JSON.parse(row.payload),revision:row.revision};}
   saveSettings(input) {
     const current=this.settings();if(input.revision!==current.revision)throw new Error('赔率设置已更新，请重新加载再保存');
-    const settings={sources:this.draws.normalizeSources(input.sources),odds:{},rebates:this.core.validateRebates(input.rebates??current.rebates)};
+    const settings={sources:this.draws.normalizeSources(input.sources),odds:{},rebates:this.core.validateRebates(input.rebates??current.rebates),playerOdds:this.core.validatePlayerOdds(input.playerOdds??current.playerOdds)};
     for(const m of ['新','旧','港']) settings.odds[m]=this.core.validateOdds(input.odds?.[m]);
     this.db.prepare('UPDATE settings SET revision=?,payload=? WHERE id=1').run(current.revision+1,JSON.stringify(settings));return this.settings();
   }
@@ -48,7 +48,7 @@ class SettlementStore {
   saveSettlement({documents,draws,settings,date,kind,selection,verification,drawDates,spaceId},expectedHash) {
     const input={...(spaceId?{spaceId}:{}),documents,draws,settings,date,kind,selection,verification,...(drawDates?{drawDates}:{})};const digest=hash(input);
     if(expectedHash!==digest)throw new Error('账目、开奖或赔率已经变化，请重新试算后再保存');
-    const result=this.core.settleDocuments(documents,draws,settings.odds,date,{drawDates,rebates:settings.rebates});
+    const result=this.core.settleDocuments(documents,draws,settings.odds,date,{drawDates,rebates:settings.rebates,playerOdds:settings.playerOdds});
     if(!result.complete)throw new Error('仍有未结算或未处理原文，不能保存为完成的赔付记录');
     for(const market of new Set(result.entries.map(e=>e.market)))if(!settings.odds[market].confirmed)throw new Error(`${market}市场赔率与中奖范围尚未确认`);
     for(const market of new Set(result.entries.map(e=>e.market)))if(!verification?.[market]?.confirmed)throw new Error(`${market}市场开奖尚未完成多站核对，请明确采用一个结果`);

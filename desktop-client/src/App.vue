@@ -47,7 +47,7 @@ onMounted(()=>{load();window.songcai?.onBeforeClose(async()=>{closing.value=true
     </template>
   </LedgerWorkspace>
   <aside v-if="recoveries.length" class="draft-recovery-banner" role="status" :inert="closing"><strong>发现未保存的原文副本</strong><span>恢复到独立空间，原账目保持原样。</span><div v-for="item in recoveries" :key="item.id"><span>{{item.spaceName}} · {{item.count}}份账目 · {{new Date(item.updatedAt).toLocaleString()}}</span><button class="button" :disabled="busy" @click="restoreDraft(item.id)">打开恢复副本</button></div></aside>
-  <div v-else class="space-loading"><h1>松财</h1><p>{{error||'正在打开空间…'}}</p><button v-if="error" class="button" @click="load">重新加载</button></div>
+  <div v-if="!active" class="space-loading"><h1>松财</h1><p>{{error||'正在打开空间…'}}</p><button v-if="error" class="button" @click="load">重新加载</button></div>
   <div v-if="busy" class="space-switch-status" role="status">正在保存并切换…</div>
   <div v-if="error&&active&&!dialog?.open" class="space-error" role="alert">{{error}}<button @click="error=''" aria-label="关闭空间提示">×</button></div>
   <dialog ref="dialog" class="space-dialog" aria-label="空间管理" @cancel="busy&&$event.preventDefault()">

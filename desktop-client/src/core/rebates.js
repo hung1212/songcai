@@ -61,11 +61,16 @@ export function withRebates(result, rawRates) {
     if (!['won','lost'].includes(entry.status)) continue;
     const key=JSON.stringify([entry.fileId,entry.playerId]);
     if (!lots.has(key)) lots.set(key,{playerId:entry.playerId,groups:new Map()});
-    const groups=lots.get(key).groups,playKey=rebatePlayKey(entry),groupKey=JSON.stringify([entry.market,playKey]);
+    const groups=lots.get(key).groups;
     const config=Object.hasOwn(rates,entry.playerId)?rates[entry.playerId]:{};
-    const rate=config.playRates&&Object.hasOwn(config.playRates,playKey)?config.playRates[playKey]:config.perTenThousandCents||0;
-    if(!groups.has(groupKey))groups.set(groupKey,{market:entry.market,playKey,rate,turnover:0n});
-    groups.get(groupKey).turnover+=BigInt(entry.stakeCents);
+    for(const lot of entry.rebateLots||[{playKey:rebatePlayKey(entry),stakeCents:entry.stakeCents}]) {
+      const hasYearRate=Object.hasOwn(config.playRates||{},'flat-zodiac-year');
+      const playKey=lot.playKey==='flat-zodiac-year'&&!hasYearRate?'flat-zodiac':lot.playKey;
+      const groupKey=JSON.stringify([entry.market,playKey]);
+      const rate=config.playRates&&Object.hasOwn(config.playRates,playKey)?config.playRates[playKey]:config.perTenThousandCents||0;
+      if(!groups.has(groupKey))groups.set(groupKey,{market:entry.market,playKey,rate,turnover:0n});
+      groups.get(groupKey).turnover+=BigInt(lot.stakeCents);
+    }
   }
   const players=result.players.map(person=>({...person,turnoverCents:0,rebateCents:0,
     perTenThousandCents:Object.hasOwn(rates,person.id)?rates[person.id].perTenThousandCents:0,

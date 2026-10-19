@@ -5,7 +5,7 @@ export const REBATE_PLAYS=[
   ...[2,3,4,5,6].map(n=>row(`special-zodiac-any-${n}`,`${n}肖中特`,'特肖')),
   row('linked-number-2-2','二中二','连码'),row('linked-number-3-3','三中三','连码'),row('linked-number-3-2','三中二','连码'),row('linked-number-2-special','二中特','连码'),row('special-pair','特串','连码'),
   ...[2,3,4,5].map(n=>row(`linked-zodiac-${n}`,`${n}连肖`,'连肖')),
-  row('flat-zodiac','平特肖','平特'),row('flat-tail','平特尾','平特'),row('flat-number','平码','平特'),row('flat-seven-number','平特号码（含特码）','平特'),
+  row('flat-zodiac','平特肖','平特'),row('flat-zodiac-year','平特肖（本命年）','平特'),row('flat-tail','平特尾','平特'),row('flat-number','平码','平特'),row('flat-seven-number','平特号码（含特码）','平特'),
   ...[1,2,3,4,5].map(n=>row(`flat-any-${n}`,`${n}粒平特任中`,'平特')),
   ...[2,3,4].map(n=>row(`linked-tail-${n}`,`${n}连尾`,'连尾')),
   ...[5,6,7,8,9,10].map(n=>row(`not-hit-${n}`,`${n}不中`,'不中')),

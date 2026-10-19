@@ -74,6 +74,6 @@ export function reviewSettlement(snapshot){
     if(changes.length)changed.push({id:d.id,name:d.name,changes});
   }
   if(!changed.length)return null;
-  const result=settleDocuments(documents,snapshot.inputs.draws,snapshot.inputs.settings.odds,snapshot.inputs.date,{drawDates:snapshot.inputs.drawDates,rebates:snapshot.inputs.settings.rebates});
+  const result=settleDocuments(documents,snapshot.inputs.draws,snapshot.inputs.settings.odds,snapshot.inputs.date,{drawDates:snapshot.inputs.drawDates,rebates:snapshot.inputs.settings.rebates,playerOdds:snapshot.inputs.settings.playerOdds});
   return {required:true,message:'解析升级发现差异，以下为原开奖、原赔率下的复算；已保存版本保持不变。',documents:changed,beforeStakeCents:snapshot.result.stakeCents,afterStakeCents:result.stakeCents,beforePayoutCents:snapshot.result.payoutCents,afterPayoutCents:result.complete?result.payoutCents:null,complete:result.complete,result};
 }

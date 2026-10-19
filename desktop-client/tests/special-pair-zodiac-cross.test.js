@@ -63,7 +63,7 @@ test('明确复式、号码分组及单号拖肖仍按原特串计算，冲突�
   assert.deepEqual(valid('特碰(03 09)(15 21)每组2').bets[0].groups,[[3,9],[15,21]]);
   assert.equal(valid('特碰45拖鸡各10').bets[0].totalCents,4000);
   assert.equal(valid('二连肖龙狗每组2').bets[0].totalCents,200);
-  for(const [text,code] of [['特碰龙龙每组2','GROUP_SIZE'],['特碰龙狗每肖2','BASIS_CONFLICT'],['特碰龙狗各号2','BASIS_CONFLICT'],['特碰龙狗','MISSING_AMOUNT'],['特碰龙狗每组-2','INVALID_AMOUNT'],['特碰龙拖狗每组2','DAN_TUO'],['特碰特肖龙狗每组2','PLAY_CONFLICT']]){
+  for(const [text,code] of [['特碰龙龙每组2','GROUP_SIZE'],['特碰龙狗每肖2','BASIS_CONFLICT'],['特碰龙狗各号2','BASIS_CONFLICT'],['特碰龙狗','MISSING_AMOUNT'],['特碰龙狗每组-2','INVALID_AMOUNT'],['特碰龙拖狗鸡每组2','DAN_TUO'],['特碰特肖龙狗每组2','PLAY_CONFLICT']]){
     const p=parse(text);assert(p.issues.some(i=>i.code===code),`${text}: ${JSON.stringify(p.issues)}`);assert.equal(summarize([p]).totalCents,0);
   }
 });

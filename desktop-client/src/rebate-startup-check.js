@@ -52,8 +52,27 @@ export async function checkRebateUI(context,project,input){
     field('小明每万元退水','');field('小明 特肖／一肖中特每万元退水','');person('张三');await nextTick();field('张三每万元退水','');await save();
     if((await api.preview(input)).result.rebateCents!==0)throw new Error('取消退水失败');
     if((await api.get({id:record.id})).result.rebateCents!==450)throw new Error('历史退水被覆盖');
+    person('小明');await nextTick();field('小明 平特肖（本命年）每万元退水','50');await save();
+    if((await api.load({date:input.date})).settings.rebates.小明.playRates['flat-zodiac-year']!==5000)throw new Error('本命年退水未保存');
+    host.querySelectorAll('[role="tab"]')[1].click();await nextTick();
+    field('小明 新 平特肖普通赔率','2.4');field('小明 新 平特肖本命年赔率','1.6');await nextTick();
+    person('张三');await nextTick();
+    if(host.querySelector('[aria-label="张三 新 平特肖本命年赔率"]').value!=='')throw new Error('玩家赔率串用');
+    field('张三 新 特码（每号）普通赔率','44');await nextTick();person('小明');await nextTick();
+    if(host.querySelector('[aria-label="小明 新 平特肖本命年赔率"]').value!=='1.6')throw new Error('切换玩家丢失赔率草稿');
+    await save();const configured=(await api.load({date:input.date})).settings;
+    if(configured.playerOdds.小明.markets.新.rates['flat-zodiac'].specialRate!=='1.6'||configured.playerOdds.张三.markets.新.rates['special-number'].rate!=='44')throw new Error('玩家赔率未保存');
+    const market=host.querySelector('[aria-label="玩家赔率市场"]');market.value='港';market.dispatchEvent(new Event('change',{bubbles:true}));await nextTick();
+    if(host.querySelector('[aria-label="小明 港 平特肖本命年赔率"]').value!=='')throw new Error('市场赔率串用');
+    field('小明 港 平特肖本命年赔率','1.7');await save();
+    field('小明 港 平特肖本命年赔率','');await save();
+    if((await api.load({date:input.date})).settings.playerOdds.小明.markets.港)throw new Error('清空赔率未恢复继承');
+    const resetMarket=host.querySelector('[aria-label="玩家赔率市场"]');resetMarket.value='新';resetMarket.dispatchEvent(new Event('change',{bubbles:true}));await nextTick();
+    field('小明 新 平特肖本命年赔率','0');await nextTick();
+    let invalid=false;try{await component.flush();}catch{invalid=true;}if(!invalid)throw new Error('无效玩家赔率未拦截');
+    field('小明 新 平特肖本命年赔率','1.6');await save();
     return true;
   }finally{
-    daily?.unmount();dailyHost.remove();app.unmount();host.remove();const current=(await api.load({date:input.date})).settings;await api.settings({...current,rebates:original.rebates});
+    daily?.unmount();dailyHost.remove();app.unmount();host.remove();const current=(await api.load({date:input.date})).settings;await api.settings({...current,rebates:original.rebates,playerOdds:original.playerOdds||{}});
   }
 }
