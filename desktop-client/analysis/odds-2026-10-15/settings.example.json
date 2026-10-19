@@ -1,0 +1,735 @@
+{
+  "date": "2026-10-15",
+  "activeSpaceId": "example",
+  "spaces": [
+    {
+      "id": "example",
+      "name": "分析示例",
+      "odds": {
+        "新": {
+          "includePrincipal": true,
+          "confirmed": false,
+          "specialAnimal": "lunar",
+          "scopes": {
+            "flat-number": "six",
+            "flat-zodiac": "seven",
+            "flat-tail": "seven",
+            "flat-any": "seven",
+            "linked-zodiac": "seven",
+            "linked-tail": "seven",
+            "not-hit": "seven"
+          },
+          "refund49": {
+            "attribute": null,
+            "sixZodiac": null,
+            "halfWave": false
+          },
+          "rates": {
+            "special-number": {
+              "rate": "47",
+              "specialRate": ""
+            },
+            "special-zodiac": {
+              "rate": "11.7",
+              "specialRate": "9"
+            },
+            "any-2": {
+              "rate": "5.6",
+              "specialRate": "5"
+            },
+            "any-3": {
+              "rate": "3.7",
+              "specialRate": "3.4"
+            },
+            "any-4": {
+              "rate": "2.8",
+              "specialRate": "2.6"
+            },
+            "any-5": {
+              "rate": "2.25",
+              "specialRate": "2.1"
+            },
+            "any-6": {
+              "rate": "1.9",
+              "specialRate": "1.9"
+            },
+            "wave-红波": {
+              "rate": "2.7",
+              "specialRate": ""
+            },
+            "wave-蓝波": {
+              "rate": "2.8",
+              "specialRate": ""
+            },
+            "wave-绿波": {
+              "rate": "2.8",
+              "specialRate": ""
+            },
+            "half-红单": {
+              "rate": "5.5",
+              "specialRate": ""
+            },
+            "half-红双": {
+              "rate": "5",
+              "specialRate": ""
+            },
+            "half-红大": {
+              "rate": "6.3",
+              "specialRate": ""
+            },
+            "half-红小": {
+              "rate": "4.5",
+              "specialRate": ""
+            },
+            "half-蓝单": {
+              "rate": "5.5",
+              "specialRate": ""
+            },
+            "half-蓝双": {
+              "rate": "5.5",
+              "specialRate": ""
+            },
+            "half-蓝大": {
+              "rate": "5",
+              "specialRate": ""
+            },
+            "half-蓝小": {
+              "rate": "6.3",
+              "specialRate": ""
+            },
+            "half-绿单": {
+              "rate": "5.5",
+              "specialRate": ""
+            },
+            "half-绿双": {
+              "rate": "6.3",
+              "specialRate": ""
+            },
+            "half-绿大": {
+              "rate": "5.5",
+              "specialRate": ""
+            },
+            "half-绿小": {
+              "rate": "6.3",
+              "specialRate": ""
+            },
+            "attribute": {
+              "rate": "1.9",
+              "specialRate": ""
+            },
+            "linked-number-3-3": {
+              "rate": "650",
+              "specialRate": ""
+            },
+            "linked-number-2-2": {
+              "rate": "60",
+              "specialRate": ""
+            },
+            "three-two": {
+              "rate": "",
+              "specialRate": ""
+            },
+            "three-three": {
+              "rate": "",
+              "specialRate": ""
+            },
+            "two-normal": {
+              "rate": "",
+              "specialRate": ""
+            },
+            "two-special": {
+              "rate": "",
+              "specialRate": ""
+            },
+            "special-pair": {
+              "rate": "150",
+              "specialRate": ""
+            },
+            "zodiac-2": {
+              "rate": "4",
+              "specialRate": "3.8"
+            },
+            "zodiac-3": {
+              "rate": "10.5",
+              "specialRate": "8.5"
+            },
+            "zodiac-4": {
+              "rate": "30",
+              "specialRate": "28"
+            },
+            "zodiac-5": {
+              "rate": "98",
+              "specialRate": "85"
+            },
+            "tail-2": {
+              "rate": "3",
+              "specialRate": ""
+            },
+            "tail-3": {
+              "rate": "6.3",
+              "specialRate": ""
+            },
+            "tail-4": {
+              "rate": "15",
+              "specialRate": ""
+            },
+            "flat-any-1": {
+              "rate": "6.5",
+              "specialRate": ""
+            },
+            "flat-any-2": {
+              "rate": "3.5",
+              "specialRate": ""
+            },
+            "flat-any-3": {
+              "rate": "2.5",
+              "specialRate": ""
+            },
+            "flat-any-4": {
+              "rate": "2",
+              "specialRate": ""
+            },
+            "flat-any-5": {
+              "rate": "1.75",
+              "specialRate": ""
+            },
+            "not-hit-5": {
+              "rate": "2",
+              "specialRate": ""
+            },
+            "not-hit-6": {
+              "rate": "2.4",
+              "specialRate": ""
+            },
+            "not-hit-7": {
+              "rate": "2.9",
+              "specialRate": ""
+            },
+            "not-hit-8": {
+              "rate": "3.5",
+              "specialRate": ""
+            },
+            "not-hit-9": {
+              "rate": "4",
+              "specialRate": ""
+            },
+            "not-hit-10": {
+              "rate": "5",
+              "specialRate": ""
+            },
+            "flat-number": {
+              "rate": "7",
+              "specialRate": ""
+            },
+            "flat-zodiac": {
+              "rate": "2.05",
+              "specialRate": "1.8"
+            },
+            "flat-tail": {
+              "rate": "1.8",
+              "specialRate": ""
+            },
+            "zero-tail": {
+              "rate": "2.05",
+              "specialRate": ""
+            }
+          }
+        },
+        "旧": {
+          "includePrincipal": true,
+          "confirmed": false,
+          "specialAnimal": "lunar",
+          "scopes": {
+            "flat-number": "six",
+            "flat-zodiac": "seven",
+            "flat-tail": "seven",
+            "flat-any": "seven",
+            "linked-zodiac": "seven",
+            "linked-tail": "seven",
+            "not-hit": "seven"
+          },
+          "refund49": {
+            "attribute": null,
+            "sixZodiac": null,
+            "halfWave": false
+          },
+          "rates": {
+            "special-number": {
+              "rate": "47",
+              "specialRate": ""
+            },
+            "special-zodiac": {
+              "rate": "11.7",
+              "specialRate": "9"
+            },
+            "any-2": {
+              "rate": "5.6",
+              "specialRate": "5"
+            },
+            "any-3": {
+              "rate": "3.7",
+              "specialRate": "3.4"
+            },
+            "any-4": {
+              "rate": "2.8",
+              "specialRate": "2.6"
+            },
+            "any-5": {
+              "rate": "2.25",
+              "specialRate": "2.1"
+            },
+            "any-6": {
+              "rate": "1.9",
+              "specialRate": "1.9"
+            },
+            "wave-红波": {
+              "rate": "2.7",
+              "specialRate": ""
+            },
+            "wave-蓝波": {
+              "rate": "2.8",
+              "specialRate": ""
+            },
+            "wave-绿波": {
+              "rate": "2.8",
+              "specialRate": ""
+            },
+            "half-红单": {
+              "rate": "5.5",
+              "specialRate": ""
+            },
+            "half-红双": {
+              "rate": "5",
+              "specialRate": ""
+            },
+            "half-红大": {
+              "rate": "6.3",
+              "specialRate": ""
+            },
+            "half-红小": {
+              "rate": "4.5",
+              "specialRate": ""
+            },
+            "half-蓝单": {
+              "rate": "5.5",
+              "specialRate": ""
+            },
+            "half-蓝双": {
+              "rate": "5.5",
+              "specialRate": ""
+            },
+            "half-蓝大": {
+              "rate": "5",
+              "specialRate": ""
+            },
+            "half-蓝小": {
+              "rate": "6.3",
+              "specialRate": ""
+            },
+            "half-绿单": {
+              "rate": "5.5",
+              "specialRate": ""
+            },
+            "half-绿双": {
+              "rate": "6.3",
+              "specialRate": ""
+            },
+            "half-绿大": {
+              "rate": "5.5",
+              "specialRate": ""
+            },
+            "half-绿小": {
+              "rate": "6.3",
+              "specialRate": ""
+            },
+            "attribute": {
+              "rate": "1.9",
+              "specialRate": ""
+            },
+            "linked-number-3-3": {
+              "rate": "650",
+              "specialRate": ""
+            },
+            "linked-number-2-2": {
+              "rate": "60",
+              "specialRate": ""
+            },
+            "three-two": {
+              "rate": "",
+              "specialRate": ""
+            },
+            "three-three": {
+              "rate": "",
+              "specialRate": ""
+            },
+            "two-normal": {
+              "rate": "",
+              "specialRate": ""
+            },
+            "two-special": {
+              "rate": "",
+              "specialRate": ""
+            },
+            "special-pair": {
+              "rate": "150",
+              "specialRate": ""
+            },
+            "zodiac-2": {
+              "rate": "4",
+              "specialRate": "3.8"
+            },
+            "zodiac-3": {
+              "rate": "10.5",
+              "specialRate": "8.5"
+            },
+            "zodiac-4": {
+              "rate": "30",
+              "specialRate": "28"
+            },
+            "zodiac-5": {
+              "rate": "98",
+              "specialRate": "85"
+            },
+            "tail-2": {
+              "rate": "3",
+              "specialRate": ""
+            },
+            "tail-3": {
+              "rate": "6.3",
+              "specialRate": ""
+            },
+            "tail-4": {
+              "rate": "15",
+              "specialRate": ""
+            },
+            "flat-any-1": {
+              "rate": "6.5",
+              "specialRate": ""
+            },
+            "flat-any-2": {
+              "rate": "3.5",
+              "specialRate": ""
+            },
+            "flat-any-3": {
+              "rate": "2.5",
+              "specialRate": ""
+            },
+            "flat-any-4": {
+              "rate": "2",
+              "specialRate": ""
+            },
+            "flat-any-5": {
+              "rate": "1.75",
+              "specialRate": ""
+            },
+            "not-hit-5": {
+              "rate": "2",
+              "specialRate": ""
+            },
+            "not-hit-6": {
+              "rate": "2.4",
+              "specialRate": ""
+            },
+            "not-hit-7": {
+              "rate": "2.9",
+              "specialRate": ""
+            },
+            "not-hit-8": {
+              "rate": "3.5",
+              "specialRate": ""
+            },
+            "not-hit-9": {
+              "rate": "4",
+              "specialRate": ""
+            },
+            "not-hit-10": {
+              "rate": "5",
+              "specialRate": ""
+            },
+            "flat-number": {
+              "rate": "7",
+              "specialRate": ""
+            },
+            "flat-zodiac": {
+              "rate": "2.05",
+              "specialRate": "1.8"
+            },
+            "flat-tail": {
+              "rate": "1.8",
+              "specialRate": ""
+            },
+            "zero-tail": {
+              "rate": "2.05",
+              "specialRate": ""
+            }
+          }
+        },
+        "港": {
+          "includePrincipal": true,
+          "confirmed": false,
+          "specialAnimal": "lunar",
+          "scopes": {
+            "flat-number": "six",
+            "flat-zodiac": "seven",
+            "flat-tail": "seven",
+            "flat-any": "seven",
+            "linked-zodiac": "seven",
+            "linked-tail": "seven",
+            "not-hit": "seven"
+          },
+          "refund49": {
+            "attribute": null,
+            "sixZodiac": null,
+            "halfWave": false
+          },
+          "rates": {
+            "special-number": {
+              "rate": "47",
+              "specialRate": ""
+            },
+            "special-zodiac": {
+              "rate": "11.7",
+              "specialRate": "9"
+            },
+            "any-2": {
+              "rate": "5.6",
+              "specialRate": "5"
+            },
+            "any-3": {
+              "rate": "3.7",
+              "specialRate": "3.4"
+            },
+            "any-4": {
+              "rate": "2.8",
+              "specialRate": "2.6"
+            },
+            "any-5": {
+              "rate": "2.25",
+              "specialRate": "2.1"
+            },
+            "any-6": {
+              "rate": "1.9",
+              "specialRate": "1.9"
+            },
+            "wave-红波": {
+              "rate": "2.7",
+              "specialRate": ""
+            },
+            "wave-蓝波": {
+              "rate": "2.8",
+              "specialRate": ""
+            },
+            "wave-绿波": {
+              "rate": "2.8",
+              "specialRate": ""
+            },
+            "half-红单": {
+              "rate": "5.5",
+              "specialRate": ""
+            },
+            "half-红双": {
+              "rate": "5",
+              "specialRate": ""
+            },
+            "half-红大": {
+              "rate": "6.3",
+              "specialRate": ""
+            },
+            "half-红小": {
+              "rate": "4.5",
+              "specialRate": ""
+            },
+            "half-蓝单": {
+              "rate": "5.5",
+              "specialRate": ""
+            },
+            "half-蓝双": {
+              "rate": "5.5",
+              "specialRate": ""
+            },
+            "half-蓝大": {
+              "rate": "5",
+              "specialRate": ""
+            },
+            "half-蓝小": {
+              "rate": "6.3",
+              "specialRate": ""
+            },
+            "half-绿单": {
+              "rate": "5.5",
+              "specialRate": ""
+            },
+            "half-绿双": {
+              "rate": "6.3",
+              "specialRate": ""
+            },
+            "half-绿大": {
+              "rate": "5.5",
+              "specialRate": ""
+            },
+            "half-绿小": {
+              "rate": "6.3",
+              "specialRate": ""
+            },
+            "attribute": {
+              "rate": "1.9",
+              "specialRate": ""
+            },
+            "linked-number-3-3": {
+              "rate": "650",
+              "specialRate": ""
+            },
+            "linked-number-2-2": {
+              "rate": "60",
+              "specialRate": ""
+            },
+            "three-two": {
+              "rate": "",
+              "specialRate": ""
+            },
+            "three-three": {
+              "rate": "",
+              "specialRate": ""
+            },
+            "two-normal": {
+              "rate": "",
+              "specialRate": ""
+            },
+            "two-special": {
+              "rate": "",
+              "specialRate": ""
+            },
+            "special-pair": {
+              "rate": "150",
+              "specialRate": ""
+            },
+            "zodiac-2": {
+              "rate": "4",
+              "specialRate": "3.8"
+            },
+            "zodiac-3": {
+              "rate": "10.5",
+              "specialRate": "8.5"
+            },
+            "zodiac-4": {
+              "rate": "30",
+              "specialRate": "28"
+            },
+            "zodiac-5": {
+              "rate": "98",
+              "specialRate": "85"
+            },
+            "tail-2": {
+              "rate": "3",
+              "specialRate": ""
+            },
+            "tail-3": {
+              "rate": "6.3",
+              "specialRate": ""
+            },
+            "tail-4": {
+              "rate": "15",
+              "specialRate": ""
+            },
+            "flat-any-1": {
+              "rate": "6.5",
+              "specialRate": ""
+            },
+            "flat-any-2": {
+              "rate": "3.5",
+              "specialRate": ""
+            },
+            "flat-any-3": {
+              "rate": "2.5",
+              "specialRate": ""
+            },
+            "flat-any-4": {
+              "rate": "2",
+              "specialRate": ""
+            },
+            "flat-any-5": {
+              "rate": "1.75",
+              "specialRate": ""
+            },
+            "not-hit-5": {
+              "rate": "2",
+              "specialRate": ""
+            },
+            "not-hit-6": {
+              "rate": "2.4",
+              "specialRate": ""
+            },
+            "not-hit-7": {
+              "rate": "2.9",
+              "specialRate": ""
+            },
+            "not-hit-8": {
+              "rate": "3.5",
+              "specialRate": ""
+            },
+            "not-hit-9": {
+              "rate": "4",
+              "specialRate": ""
+            },
+            "not-hit-10": {
+              "rate": "5",
+              "specialRate": ""
+            },
+            "flat-number": {
+              "rate": "7",
+              "specialRate": ""
+            },
+            "flat-zodiac": {
+              "rate": "2.05",
+              "specialRate": "1.8"
+            },
+            "flat-tail": {
+              "rate": "1.8",
+              "specialRate": ""
+            },
+            "zero-tail": {
+              "rate": "2.05",
+              "specialRate": ""
+            }
+          }
+        }
+      },
+      "rebateUniqueSettings": [
+        {
+          "perTenThousandCents": 30000,
+          "playRates": {
+            "special-number": 30000,
+            "linked-number-2-2": 100000,
+            "linked-number-3-2": 100000,
+            "special-pair": 100000,
+            "linked-number-3-3": 100000,
+            "linked-number-2-special": 100000,
+            "flat-zodiac": 10000,
+            "flat-number": 10000,
+            "flat-any-1": 10000,
+            "flat-any-3": 10000,
+            "flat-any-5": 10000,
+            "flat-tail": 10000,
+            "flat-seven-number": 10000,
+            "flat-any-2": 10000,
+            "flat-any-4": 10000,
+            "linked-tail-2": 10000,
+            "linked-tail-4": 10000,
+            "linked-tail-3": 10000,
+            "not-hit-5": 10000,
+            "not-hit-7": 10000,
+            "not-hit-9": 10000,
+            "not-hit-6": 10000,
+            "not-hit-8": 10000,
+            "not-hit-10": 10000,
+            "attribute": 10000,
+            "linked-zodiac-4": 10000,
+            "linked-zodiac-2": 10000,
+            "linked-zodiac-3": 10000,
+            "linked-zodiac-5": 10000
+          }
+        }
+      ]
+    }
+  ]
+}

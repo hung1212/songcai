@@ -5,8 +5,8 @@ release/
 *.log
 native/bin/
 
-# Local analysis exports may include account settings.
-/analysis/
+# Keep analysis code and reports, but exclude raw local account settings.
+/analysis/**/settings.json
 
 # Generated verification output; retain the synthetic regression fixture.
 /reports/*

@@ -1,0 +1,455 @@
+{
+  "rule": {
+    "date": "2026-10-15",
+    "lunarYear": 2026,
+    "animal": "马",
+    "zodiac": {
+      "鼠": [
+        7,
+        19,
+        31,
+        43
+      ],
+      "牛": [
+        6,
+        18,
+        30,
+        42
+      ],
+      "虎": [
+        5,
+        17,
+        29,
+        41
+      ],
+      "兔": [
+        4,
+        16,
+        28,
+        40
+      ],
+      "龙": [
+        3,
+        15,
+        27,
+        39
+      ],
+      "蛇": [
+        2,
+        14,
+        26,
+        38
+      ],
+      "马": [
+        1,
+        13,
+        25,
+        37,
+        49
+      ],
+      "羊": [
+        12,
+        24,
+        36,
+        48
+      ],
+      "猴": [
+        11,
+        23,
+        35,
+        47
+      ],
+      "鸡": [
+        10,
+        22,
+        34,
+        46
+      ],
+      "狗": [
+        9,
+        21,
+        33,
+        45
+      ],
+      "猪": [
+        8,
+        20,
+        32,
+        44
+      ]
+    },
+    "version": "songcai-0.1.0-rules-20261005",
+    "lunarDate": "九月初六"
+  },
+  "waves": {
+    "红": [
+      1,
+      2,
+      7,
+      8,
+      12,
+      13,
+      18,
+      19,
+      23,
+      24,
+      29,
+      30,
+      34,
+      35,
+      40,
+      45,
+      46
+    ],
+    "蓝": [
+      3,
+      4,
+      9,
+      10,
+      14,
+      15,
+      20,
+      25,
+      26,
+      31,
+      36,
+      37,
+      41,
+      42,
+      47,
+      48
+    ],
+    "绿": [
+      5,
+      6,
+      11,
+      16,
+      17,
+      21,
+      22,
+      27,
+      28,
+      32,
+      33,
+      38,
+      39,
+      43,
+      44,
+      49
+    ]
+  },
+  "rateRows": [
+    {
+      "key": "special-number",
+      "label": "特码（每号）",
+      "rate": "47",
+      "specialRate": ""
+    },
+    {
+      "key": "special-zodiac",
+      "label": "特肖／一肖中特",
+      "rate": "11.7",
+      "specialRate": "9"
+    },
+    {
+      "key": "any-2",
+      "label": "2肖中特（整项）",
+      "rate": "5.6",
+      "specialRate": "5"
+    },
+    {
+      "key": "any-3",
+      "label": "3肖中特（整项）",
+      "rate": "3.7",
+      "specialRate": "3.4"
+    },
+    {
+      "key": "any-4",
+      "label": "4肖中特（整项）",
+      "rate": "2.8",
+      "specialRate": "2.6"
+    },
+    {
+      "key": "any-5",
+      "label": "5肖中特（整项）",
+      "rate": "2.25",
+      "specialRate": "2.1"
+    },
+    {
+      "key": "any-6",
+      "label": "6肖中特（整项）",
+      "rate": "1.9",
+      "specialRate": "1.9"
+    },
+    {
+      "key": "wave-红波",
+      "label": "红波",
+      "rate": "2.7",
+      "specialRate": ""
+    },
+    {
+      "key": "wave-蓝波",
+      "label": "蓝波",
+      "rate": "2.8",
+      "specialRate": ""
+    },
+    {
+      "key": "wave-绿波",
+      "label": "绿波",
+      "rate": "2.8",
+      "specialRate": ""
+    },
+    {
+      "key": "half-红单",
+      "label": "红单",
+      "rate": "5.5",
+      "specialRate": ""
+    },
+    {
+      "key": "half-红双",
+      "label": "红双",
+      "rate": "5",
+      "specialRate": ""
+    },
+    {
+      "key": "half-红大",
+      "label": "红大",
+      "rate": "6.3",
+      "specialRate": ""
+    },
+    {
+      "key": "half-红小",
+      "label": "红小",
+      "rate": "4.5",
+      "specialRate": ""
+    },
+    {
+      "key": "half-蓝单",
+      "label": "蓝单",
+      "rate": "5.5",
+      "specialRate": ""
+    },
+    {
+      "key": "half-蓝双",
+      "label": "蓝双",
+      "rate": "5.5",
+      "specialRate": ""
+    },
+    {
+      "key": "half-蓝大",
+      "label": "蓝大",
+      "rate": "5",
+      "specialRate": ""
+    },
+    {
+      "key": "half-蓝小",
+      "label": "蓝小",
+      "rate": "6.3",
+      "specialRate": ""
+    },
+    {
+      "key": "half-绿单",
+      "label": "绿单",
+      "rate": "5.5",
+      "specialRate": ""
+    },
+    {
+      "key": "half-绿双",
+      "label": "绿双",
+      "rate": "6.3",
+      "specialRate": ""
+    },
+    {
+      "key": "half-绿大",
+      "label": "绿大",
+      "rate": "5.5",
+      "specialRate": ""
+    },
+    {
+      "key": "half-绿小",
+      "label": "绿小",
+      "rate": "6.3",
+      "specialRate": ""
+    },
+    {
+      "key": "attribute",
+      "label": "大小单双／合单合双",
+      "rate": "1.9",
+      "specialRate": ""
+    },
+    {
+      "key": "linked-number-3-3",
+      "label": "三中三",
+      "rate": "650",
+      "specialRate": ""
+    },
+    {
+      "key": "linked-number-2-2",
+      "label": "二中二",
+      "rate": "60",
+      "specialRate": ""
+    },
+    {
+      "key": "three-two",
+      "label": "三中二：中2个正码（原图20/90待定）",
+      "rate": "",
+      "specialRate": ""
+    },
+    {
+      "key": "three-three",
+      "label": "三中二：中3个正码（原图20/90待定）",
+      "rate": "",
+      "specialRate": ""
+    },
+    {
+      "key": "two-normal",
+      "label": "二中特：两个正码（原图25/50待定）",
+      "rate": "",
+      "specialRate": ""
+    },
+    {
+      "key": "two-special",
+      "label": "二中特：一个正码+特码（原图25/50待定）",
+      "rate": "",
+      "specialRate": ""
+    },
+    {
+      "key": "special-pair",
+      "label": "特串：一个正码+特码",
+      "rate": "150",
+      "specialRate": ""
+    },
+    {
+      "key": "zodiac-2",
+      "label": "2连肖",
+      "rate": "4",
+      "specialRate": "3.8"
+    },
+    {
+      "key": "zodiac-3",
+      "label": "3连肖",
+      "rate": "10.5",
+      "specialRate": "8.5"
+    },
+    {
+      "key": "zodiac-4",
+      "label": "4连肖",
+      "rate": "30",
+      "specialRate": "28"
+    },
+    {
+      "key": "zodiac-5",
+      "label": "5连肖",
+      "rate": "98",
+      "specialRate": "85"
+    },
+    {
+      "key": "tail-2",
+      "label": "2连尾",
+      "rate": "3",
+      "specialRate": ""
+    },
+    {
+      "key": "tail-3",
+      "label": "3连尾",
+      "rate": "6.3",
+      "specialRate": ""
+    },
+    {
+      "key": "tail-4",
+      "label": "4连尾",
+      "rate": "15",
+      "specialRate": ""
+    },
+    {
+      "key": "flat-any-1",
+      "label": "1粒平特任中",
+      "rate": "6.5",
+      "specialRate": ""
+    },
+    {
+      "key": "flat-any-2",
+      "label": "2粒平特任中",
+      "rate": "3.5",
+      "specialRate": ""
+    },
+    {
+      "key": "flat-any-3",
+      "label": "3粒平特任中",
+      "rate": "2.5",
+      "specialRate": ""
+    },
+    {
+      "key": "flat-any-4",
+      "label": "4粒平特任中",
+      "rate": "2",
+      "specialRate": ""
+    },
+    {
+      "key": "flat-any-5",
+      "label": "5粒平特任中",
+      "rate": "1.75",
+      "specialRate": ""
+    },
+    {
+      "key": "not-hit-5",
+      "label": "5不中",
+      "rate": "2",
+      "specialRate": ""
+    },
+    {
+      "key": "not-hit-6",
+      "label": "6不中",
+      "rate": "2.4",
+      "specialRate": ""
+    },
+    {
+      "key": "not-hit-7",
+      "label": "7不中",
+      "rate": "2.9",
+      "specialRate": ""
+    },
+    {
+      "key": "not-hit-8",
+      "label": "8不中",
+      "rate": "3.5",
+      "specialRate": ""
+    },
+    {
+      "key": "not-hit-9",
+      "label": "9不中",
+      "rate": "4",
+      "specialRate": ""
+    },
+    {
+      "key": "not-hit-10",
+      "label": "10不中",
+      "rate": "5",
+      "specialRate": ""
+    },
+    {
+      "key": "flat-number",
+      "label": "平码／平特号码",
+      "rate": "7",
+      "specialRate": ""
+    },
+    {
+      "key": "flat-zodiac",
+      "label": "平特肖",
+      "rate": "2.05",
+      "specialRate": "1.8"
+    },
+    {
+      "key": "flat-tail",
+      "label": "平特尾（非0尾）",
+      "rate": "1.8",
+      "specialRate": ""
+    },
+    {
+      "key": "zero-tail",
+      "label": "平特0尾",
+      "rate": "2.05",
+      "specialRate": ""
+    }
+  ]
+}

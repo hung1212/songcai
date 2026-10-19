@@ -1,0 +1,2958 @@
+{
+  "date": "2026-10-15",
+  "principal": 1000000,
+  "rows": [
+    {
+      "group": "特码",
+      "label": "特码逐号",
+      "rateKey": "special-number",
+      "rate": "47",
+      "probability": {
+        "fraction": "1/49",
+        "value": 0.02040816326530612
+      },
+      "refundProbability": {
+        "fraction": "0",
+        "value": 0.0
+      },
+      "rtp": {
+        "fraction": "47/49",
+        "value": 0.9591836734693877
+      },
+      "lossRate": {
+        "fraction": "2/49",
+        "value": 0.04081632653061224
+      },
+      "rebateRate": {
+        "fraction": "3/100",
+        "value": 0.03
+      },
+      "rebateEffectiveRate": {
+        "fraction": "3/100",
+        "value": 0.03
+      },
+      "lossAfterRebate": {
+        "fraction": "53/4900",
+        "value": 0.010816326530612244
+      },
+      "condition": "已保存",
+      "notes": ""
+    },
+    {
+      "group": "特肖 / 多肖中特",
+      "label": "特肖：非马",
+      "rateKey": "special-zodiac",
+      "rate": "11.7",
+      "probability": {
+        "fraction": "4/49",
+        "value": 0.08163265306122448
+      },
+      "refundProbability": {
+        "fraction": "0",
+        "value": 0.0
+      },
+      "rtp": {
+        "fraction": "234/245",
+        "value": 0.9551020408163265
+      },
+      "lossRate": {
+        "fraction": "11/245",
+        "value": 0.044897959183673466
+      },
+      "rebateRate": {
+        "fraction": "3/100",
+        "value": 0.03
+      },
+      "rebateEffectiveRate": {
+        "fraction": "3/100",
+        "value": 0.03
+      },
+      "lossAfterRebate": {
+        "fraction": "73/4900",
+        "value": 0.01489795918367347
+      },
+      "condition": "已保存",
+      "notes": ""
+    },
+    {
+      "group": "特肖 / 多肖中特",
+      "label": "特肖：马",
+      "rateKey": "special-zodiac",
+      "rate": "9",
+      "probability": {
+        "fraction": "5/49",
+        "value": 0.10204081632653061
+      },
+      "refundProbability": {
+        "fraction": "0",
+        "value": 0.0
+      },
+      "rtp": {
+        "fraction": "45/49",
+        "value": 0.9183673469387755
+      },
+      "lossRate": {
+        "fraction": "4/49",
+        "value": 0.08163265306122448
+      },
+      "rebateRate": {
+        "fraction": "3/100",
+        "value": 0.03
+      },
+      "rebateEffectiveRate": {
+        "fraction": "3/100",
+        "value": 0.03
+      },
+      "lossAfterRebate": {
+        "fraction": "253/4900",
+        "value": 0.05163265306122449
+      },
+      "condition": "已保存",
+      "notes": ""
+    },
+    {
+      "group": "特肖 / 多肖中特",
+      "label": "2肖中特：不含马",
+      "rateKey": "any-2",
+      "rate": "5.6",
+      "probability": {
+        "fraction": "8/49",
+        "value": 0.16326530612244897
+      },
+      "refundProbability": {
+        "fraction": "0",
+        "value": 0.0
+      },
+      "rtp": {
+        "fraction": "32/35",
+        "value": 0.9142857142857143
+      },
+      "lossRate": {
+        "fraction": "3/35",
+        "value": 0.08571428571428572
+      },
+      "rebateRate": {
+        "fraction": "3/100",
+        "value": 0.03
+      },
+      "rebateEffectiveRate": {
+        "fraction": "3/100",
+        "value": 0.03
+      },
+      "lossAfterRebate": {
+        "fraction": "39/700",
+        "value": 0.055714285714285716
+      },
+      "condition": "已保存",
+      "notes": ""
+    },
+    {
+      "group": "特肖 / 多肖中特",
+      "label": "2肖中特：含马",
+      "rateKey": "any-2",
+      "rate": "5",
+      "probability": {
+        "fraction": "9/49",
+        "value": 0.1836734693877551
+      },
+      "refundProbability": {
+        "fraction": "0",
+        "value": 0.0
+      },
+      "rtp": {
+        "fraction": "45/49",
+        "value": 0.9183673469387755
+      },
+      "lossRate": {
+        "fraction": "4/49",
+        "value": 0.08163265306122448
+      },
+      "rebateRate": {
+        "fraction": "3/100",
+        "value": 0.03
+      },
+      "rebateEffectiveRate": {
+        "fraction": "3/100",
+        "value": 0.03
+      },
+      "lossAfterRebate": {
+        "fraction": "253/4900",
+        "value": 0.05163265306122449
+      },
+      "condition": "已保存",
+      "notes": ""
+    },
+    {
+      "group": "特肖 / 多肖中特",
+      "label": "3肖中特：不含马",
+      "rateKey": "any-3",
+      "rate": "3.7",
+      "probability": {
+        "fraction": "12/49",
+        "value": 0.24489795918367346
+      },
+      "refundProbability": {
+        "fraction": "0",
+        "value": 0.0
+      },
+      "rtp": {
+        "fraction": "222/245",
+        "value": 0.9061224489795918
+      },
+      "lossRate": {
+        "fraction": "23/245",
+        "value": 0.09387755102040816
+      },
+      "rebateRate": {
+        "fraction": "3/100",
+        "value": 0.03
+      },
+      "rebateEffectiveRate": {
+        "fraction": "3/100",
+        "value": 0.03
+      },
+      "lossAfterRebate": {
+        "fraction": "313/4900",
+        "value": 0.06387755102040817
+      },
+      "condition": "已保存",
+      "notes": ""
+    },
+    {
+      "group": "特肖 / 多肖中特",
+      "label": "3肖中特：含马",
+      "rateKey": "any-3",
+      "rate": "3.4",
+      "probability": {
+        "fraction": "13/49",
+        "value": 0.2653061224489796
+      },
+      "refundProbability": {
+        "fraction": "0",
+        "value": 0.0
+      },
+      "rtp": {
+        "fraction": "221/245",
+        "value": 0.9020408163265307
+      },
+      "lossRate": {
+        "fraction": "24/245",
+        "value": 0.09795918367346938
+      },
+      "rebateRate": {
+        "fraction": "3/100",
+        "value": 0.03
+      },
+      "rebateEffectiveRate": {
+        "fraction": "3/100",
+        "value": 0.03
+      },
+      "lossAfterRebate": {
+        "fraction": "333/4900",
+        "value": 0.06795918367346938
+      },
+      "condition": "已保存",
+      "notes": ""
+    },
+    {
+      "group": "特肖 / 多肖中特",
+      "label": "4肖中特：不含马",
+      "rateKey": "any-4",
+      "rate": "2.8",
+      "probability": {
+        "fraction": "16/49",
+        "value": 0.32653061224489793
+      },
+      "refundProbability": {
+        "fraction": "0",
+        "value": 0.0
+      },
+      "rtp": {
+        "fraction": "32/35",
+        "value": 0.9142857142857143
+      },
+      "lossRate": {
+        "fraction": "3/35",
+        "value": 0.08571428571428572
+      },
+      "rebateRate": {
+        "fraction": "3/100",
+        "value": 0.03
+      },
+      "rebateEffectiveRate": {
+        "fraction": "3/100",
+        "value": 0.03
+      },
+      "lossAfterRebate": {
+        "fraction": "39/700",
+        "value": 0.055714285714285716
+      },
+      "condition": "已保存",
+      "notes": ""
+    },
+    {
+      "group": "特肖 / 多肖中特",
+      "label": "4肖中特：含马",
+      "rateKey": "any-4",
+      "rate": "2.6",
+      "probability": {
+        "fraction": "17/49",
+        "value": 0.3469387755102041
+      },
+      "refundProbability": {
+        "fraction": "0",
+        "value": 0.0
+      },
+      "rtp": {
+        "fraction": "221/245",
+        "value": 0.9020408163265307
+      },
+      "lossRate": {
+        "fraction": "24/245",
+        "value": 0.09795918367346938
+      },
+      "rebateRate": {
+        "fraction": "3/100",
+        "value": 0.03
+      },
+      "rebateEffectiveRate": {
+        "fraction": "3/100",
+        "value": 0.03
+      },
+      "lossAfterRebate": {
+        "fraction": "333/4900",
+        "value": 0.06795918367346938
+      },
+      "condition": "已保存",
+      "notes": ""
+    },
+    {
+      "group": "特肖 / 多肖中特",
+      "label": "5肖中特：不含马",
+      "rateKey": "any-5",
+      "rate": "2.25",
+      "probability": {
+        "fraction": "20/49",
+        "value": 0.40816326530612246
+      },
+      "refundProbability": {
+        "fraction": "0",
+        "value": 0.0
+      },
+      "rtp": {
+        "fraction": "45/49",
+        "value": 0.9183673469387755
+      },
+      "lossRate": {
+        "fraction": "4/49",
+        "value": 0.08163265306122448
+      },
+      "rebateRate": {
+        "fraction": "3/100",
+        "value": 0.03
+      },
+      "rebateEffectiveRate": {
+        "fraction": "3/100",
+        "value": 0.03
+      },
+      "lossAfterRebate": {
+        "fraction": "253/4900",
+        "value": 0.05163265306122449
+      },
+      "condition": "已保存",
+      "notes": ""
+    },
+    {
+      "group": "特肖 / 多肖中特",
+      "label": "5肖中特：含马",
+      "rateKey": "any-5",
+      "rate": "2.1",
+      "probability": {
+        "fraction": "3/7",
+        "value": 0.42857142857142855
+      },
+      "refundProbability": {
+        "fraction": "0",
+        "value": 0.0
+      },
+      "rtp": {
+        "fraction": "9/10",
+        "value": 0.9
+      },
+      "lossRate": {
+        "fraction": "1/10",
+        "value": 0.1
+      },
+      "rebateRate": {
+        "fraction": "3/100",
+        "value": 0.03
+      },
+      "rebateEffectiveRate": {
+        "fraction": "3/100",
+        "value": 0.03
+      },
+      "lossAfterRebate": {
+        "fraction": "7/100",
+        "value": 0.07
+      },
+      "condition": "已保存",
+      "notes": ""
+    },
+    {
+      "group": "波色",
+      "label": "红波",
+      "rateKey": "wave-红波",
+      "rate": "2.7",
+      "probability": {
+        "fraction": "17/49",
+        "value": 0.3469387755102041
+      },
+      "refundProbability": {
+        "fraction": "0",
+        "value": 0.0
+      },
+      "rtp": {
+        "fraction": "459/490",
+        "value": 0.936734693877551
+      },
+      "lossRate": {
+        "fraction": "31/490",
+        "value": 0.06326530612244897
+      },
+      "rebateRate": {
+        "fraction": "3/100",
+        "value": 0.03
+      },
+      "rebateEffectiveRate": {
+        "fraction": "3/100",
+        "value": 0.03
+      },
+      "lossAfterRebate": {
+        "fraction": "163/4900",
+        "value": 0.03326530612244898
+      },
+      "condition": "已保存",
+      "notes": "17个号码"
+    },
+    {
+      "group": "波色",
+      "label": "蓝波",
+      "rateKey": "wave-蓝波",
+      "rate": "2.8",
+      "probability": {
+        "fraction": "16/49",
+        "value": 0.32653061224489793
+      },
+      "refundProbability": {
+        "fraction": "0",
+        "value": 0.0
+      },
+      "rtp": {
+        "fraction": "32/35",
+        "value": 0.9142857142857143
+      },
+      "lossRate": {
+        "fraction": "3/35",
+        "value": 0.08571428571428572
+      },
+      "rebateRate": {
+        "fraction": "3/100",
+        "value": 0.03
+      },
+      "rebateEffectiveRate": {
+        "fraction": "3/100",
+        "value": 0.03
+      },
+      "lossAfterRebate": {
+        "fraction": "39/700",
+        "value": 0.055714285714285716
+      },
+      "condition": "已保存",
+      "notes": "16个号码"
+    },
+    {
+      "group": "波色",
+      "label": "绿波",
+      "rateKey": "wave-绿波",
+      "rate": "2.8",
+      "probability": {
+        "fraction": "16/49",
+        "value": 0.32653061224489793
+      },
+      "refundProbability": {
+        "fraction": "0",
+        "value": 0.0
+      },
+      "rtp": {
+        "fraction": "32/35",
+        "value": 0.9142857142857143
+      },
+      "lossRate": {
+        "fraction": "3/35",
+        "value": 0.08571428571428572
+      },
+      "rebateRate": {
+        "fraction": "3/100",
+        "value": 0.03
+      },
+      "rebateEffectiveRate": {
+        "fraction": "3/100",
+        "value": 0.03
+      },
+      "lossAfterRebate": {
+        "fraction": "39/700",
+        "value": 0.055714285714285716
+      },
+      "condition": "已保存",
+      "notes": "16个号码"
+    },
+    {
+      "group": "半波",
+      "label": "红单",
+      "rateKey": "half-红单",
+      "rate": "5.5",
+      "probability": {
+        "fraction": "8/49",
+        "value": 0.16326530612244897
+      },
+      "refundProbability": {
+        "fraction": "0",
+        "value": 0.0
+      },
+      "rtp": {
+        "fraction": "44/49",
+        "value": 0.8979591836734694
+      },
+      "lossRate": {
+        "fraction": "5/49",
+        "value": 0.10204081632653061
+      },
+      "rebateRate": {
+        "fraction": "3/100",
+        "value": 0.03
+      },
+      "rebateEffectiveRate": {
+        "fraction": "3/100",
+        "value": 0.03
+      },
+      "lossAfterRebate": {
+        "fraction": "353/4900",
+        "value": 0.07204081632653062
+      },
+      "condition": "已保存",
+      "notes": "8个号码；01,07,13,19,23,29,35,45"
+    },
+    {
+      "group": "半波",
+      "label": "红双",
+      "rateKey": "half-红双",
+      "rate": "5",
+      "probability": {
+        "fraction": "9/49",
+        "value": 0.1836734693877551
+      },
+      "refundProbability": {
+        "fraction": "0",
+        "value": 0.0
+      },
+      "rtp": {
+        "fraction": "45/49",
+        "value": 0.9183673469387755
+      },
+      "lossRate": {
+        "fraction": "4/49",
+        "value": 0.08163265306122448
+      },
+      "rebateRate": {
+        "fraction": "3/100",
+        "value": 0.03
+      },
+      "rebateEffectiveRate": {
+        "fraction": "3/100",
+        "value": 0.03
+      },
+      "lossAfterRebate": {
+        "fraction": "253/4900",
+        "value": 0.05163265306122449
+      },
+      "condition": "已保存",
+      "notes": "9个号码；02,08,12,18,24,30,34,40,46"
+    },
+    {
+      "group": "半波",
+      "label": "红大",
+      "rateKey": "half-红大",
+      "rate": "6.3",
+      "probability": {
+        "fraction": "1/7",
+        "value": 0.14285714285714285
+      },
+      "refundProbability": {
+        "fraction": "0",
+        "value": 0.0
+      },
+      "rtp": {
+        "fraction": "9/10",
+        "value": 0.9
+      },
+      "lossRate": {
+        "fraction": "1/10",
+        "value": 0.1
+      },
+      "rebateRate": {
+        "fraction": "3/100",
+        "value": 0.03
+      },
+      "rebateEffectiveRate": {
+        "fraction": "3/100",
+        "value": 0.03
+      },
+      "lossAfterRebate": {
+        "fraction": "7/100",
+        "value": 0.07
+      },
+      "condition": "已保存",
+      "notes": "7个号码；29,30,34,35,40,45,46"
+    },
+    {
+      "group": "半波",
+      "label": "红小",
+      "rateKey": "half-红小",
+      "rate": "4.5",
+      "probability": {
+        "fraction": "10/49",
+        "value": 0.20408163265306123
+      },
+      "refundProbability": {
+        "fraction": "0",
+        "value": 0.0
+      },
+      "rtp": {
+        "fraction": "45/49",
+        "value": 0.9183673469387755
+      },
+      "lossRate": {
+        "fraction": "4/49",
+        "value": 0.08163265306122448
+      },
+      "rebateRate": {
+        "fraction": "3/100",
+        "value": 0.03
+      },
+      "rebateEffectiveRate": {
+        "fraction": "3/100",
+        "value": 0.03
+      },
+      "lossAfterRebate": {
+        "fraction": "253/4900",
+        "value": 0.05163265306122449
+      },
+      "condition": "已保存",
+      "notes": "10个号码；01,02,07,08,12,13,18,19,23,24"
+    },
+    {
+      "group": "半波",
+      "label": "蓝单",
+      "rateKey": "half-蓝单",
+      "rate": "5.5",
+      "probability": {
+        "fraction": "8/49",
+        "value": 0.16326530612244897
+      },
+      "refundProbability": {
+        "fraction": "0",
+        "value": 0.0
+      },
+      "rtp": {
+        "fraction": "44/49",
+        "value": 0.8979591836734694
+      },
+      "lossRate": {
+        "fraction": "5/49",
+        "value": 0.10204081632653061
+      },
+      "rebateRate": {
+        "fraction": "3/100",
+        "value": 0.03
+      },
+      "rebateEffectiveRate": {
+        "fraction": "3/100",
+        "value": 0.03
+      },
+      "lossAfterRebate": {
+        "fraction": "353/4900",
+        "value": 0.07204081632653062
+      },
+      "condition": "已保存",
+      "notes": "8个号码；03,09,15,25,31,37,41,47"
+    },
+    {
+      "group": "半波",
+      "label": "蓝双",
+      "rateKey": "half-蓝双",
+      "rate": "5.5",
+      "probability": {
+        "fraction": "8/49",
+        "value": 0.16326530612244897
+      },
+      "refundProbability": {
+        "fraction": "0",
+        "value": 0.0
+      },
+      "rtp": {
+        "fraction": "44/49",
+        "value": 0.8979591836734694
+      },
+      "lossRate": {
+        "fraction": "5/49",
+        "value": 0.10204081632653061
+      },
+      "rebateRate": {
+        "fraction": "3/100",
+        "value": 0.03
+      },
+      "rebateEffectiveRate": {
+        "fraction": "3/100",
+        "value": 0.03
+      },
+      "lossAfterRebate": {
+        "fraction": "353/4900",
+        "value": 0.07204081632653062
+      },
+      "condition": "已保存",
+      "notes": "8个号码；04,10,14,20,26,36,42,48"
+    },
+    {
+      "group": "半波",
+      "label": "蓝大",
+      "rateKey": "half-蓝大",
+      "rate": "5",
+      "probability": {
+        "fraction": "9/49",
+        "value": 0.1836734693877551
+      },
+      "refundProbability": {
+        "fraction": "0",
+        "value": 0.0
+      },
+      "rtp": {
+        "fraction": "45/49",
+        "value": 0.9183673469387755
+      },
+      "lossRate": {
+        "fraction": "4/49",
+        "value": 0.08163265306122448
+      },
+      "rebateRate": {
+        "fraction": "3/100",
+        "value": 0.03
+      },
+      "rebateEffectiveRate": {
+        "fraction": "3/100",
+        "value": 0.03
+      },
+      "lossAfterRebate": {
+        "fraction": "253/4900",
+        "value": 0.05163265306122449
+      },
+      "condition": "已保存",
+      "notes": "9个号码；25,26,31,36,37,41,42,47,48"
+    },
+    {
+      "group": "半波",
+      "label": "蓝小",
+      "rateKey": "half-蓝小",
+      "rate": "6.3",
+      "probability": {
+        "fraction": "1/7",
+        "value": 0.14285714285714285
+      },
+      "refundProbability": {
+        "fraction": "0",
+        "value": 0.0
+      },
+      "rtp": {
+        "fraction": "9/10",
+        "value": 0.9
+      },
+      "lossRate": {
+        "fraction": "1/10",
+        "value": 0.1
+      },
+      "rebateRate": {
+        "fraction": "3/100",
+        "value": 0.03
+      },
+      "rebateEffectiveRate": {
+        "fraction": "3/100",
+        "value": 0.03
+      },
+      "lossAfterRebate": {
+        "fraction": "7/100",
+        "value": 0.07
+      },
+      "condition": "已保存",
+      "notes": "7个号码；03,04,09,10,14,15,20"
+    },
+    {
+      "group": "半波",
+      "label": "绿单",
+      "rateKey": "half-绿单",
+      "rate": "5.5",
+      "probability": {
+        "fraction": "9/49",
+        "value": 0.1836734693877551
+      },
+      "refundProbability": {
+        "fraction": "0",
+        "value": 0.0
+      },
+      "rtp": {
+        "fraction": "99/98",
+        "value": 1.010204081632653
+      },
+      "lossRate": {
+        "fraction": "-1/98",
+        "value": -0.01020408163265306
+      },
+      "rebateRate": {
+        "fraction": "3/100",
+        "value": 0.03
+      },
+      "rebateEffectiveRate": {
+        "fraction": "3/100",
+        "value": 0.03
+      },
+      "lossAfterRebate": {
+        "fraction": "-197/4900",
+        "value": -0.040204081632653065
+      },
+      "condition": "已保存",
+      "notes": "9个号码；05,11,17,21,27,33,39,43,49"
+    },
+    {
+      "group": "半波",
+      "label": "绿双",
+      "rateKey": "half-绿双",
+      "rate": "6.3",
+      "probability": {
+        "fraction": "1/7",
+        "value": 0.14285714285714285
+      },
+      "refundProbability": {
+        "fraction": "0",
+        "value": 0.0
+      },
+      "rtp": {
+        "fraction": "9/10",
+        "value": 0.9
+      },
+      "lossRate": {
+        "fraction": "1/10",
+        "value": 0.1
+      },
+      "rebateRate": {
+        "fraction": "3/100",
+        "value": 0.03
+      },
+      "rebateEffectiveRate": {
+        "fraction": "3/100",
+        "value": 0.03
+      },
+      "lossAfterRebate": {
+        "fraction": "7/100",
+        "value": 0.07
+      },
+      "condition": "已保存",
+      "notes": "7个号码；06,16,22,28,32,38,44"
+    },
+    {
+      "group": "半波",
+      "label": "绿大",
+      "rateKey": "half-绿大",
+      "rate": "5.5",
+      "probability": {
+        "fraction": "9/49",
+        "value": 0.1836734693877551
+      },
+      "refundProbability": {
+        "fraction": "0",
+        "value": 0.0
+      },
+      "rtp": {
+        "fraction": "99/98",
+        "value": 1.010204081632653
+      },
+      "lossRate": {
+        "fraction": "-1/98",
+        "value": -0.01020408163265306
+      },
+      "rebateRate": {
+        "fraction": "3/100",
+        "value": 0.03
+      },
+      "rebateEffectiveRate": {
+        "fraction": "3/100",
+        "value": 0.03
+      },
+      "lossAfterRebate": {
+        "fraction": "-197/4900",
+        "value": -0.040204081632653065
+      },
+      "condition": "已保存",
+      "notes": "9个号码；27,28,32,33,38,39,43,44,49"
+    },
+    {
+      "group": "半波",
+      "label": "绿小",
+      "rateKey": "half-绿小",
+      "rate": "6.3",
+      "probability": {
+        "fraction": "1/7",
+        "value": 0.14285714285714285
+      },
+      "refundProbability": {
+        "fraction": "0",
+        "value": 0.0
+      },
+      "rtp": {
+        "fraction": "9/10",
+        "value": 0.9
+      },
+      "lossRate": {
+        "fraction": "1/10",
+        "value": 0.1
+      },
+      "rebateRate": {
+        "fraction": "3/100",
+        "value": 0.03
+      },
+      "rebateEffectiveRate": {
+        "fraction": "3/100",
+        "value": 0.03
+      },
+      "lossAfterRebate": {
+        "fraction": "7/100",
+        "value": 0.07
+      },
+      "condition": "已保存",
+      "notes": "7个号码；05,06,11,16,17,21,22"
+    },
+    {
+      "group": "连码",
+      "label": "三中三",
+      "rateKey": "linked-number-3-3",
+      "rate": "650",
+      "probability": {
+        "fraction": "5/4606",
+        "value": 0.0010855405992184109
+      },
+      "refundProbability": {
+        "fraction": "0",
+        "value": 0.0
+      },
+      "rtp": {
+        "fraction": "1625/2303",
+        "value": 0.705601389491967
+      },
+      "lossRate": {
+        "fraction": "678/2303",
+        "value": 0.294398610508033
+      },
+      "rebateRate": {
+        "fraction": "1/10",
+        "value": 0.1
+      },
+      "rebateEffectiveRate": {
+        "fraction": "1/10",
+        "value": 0.1
+      },
+      "lossAfterRebate": {
+        "fraction": "4477/23030",
+        "value": 0.194398610508033
+      },
+      "condition": "已保存",
+      "notes": "仅六个正码"
+    },
+    {
+      "group": "连码",
+      "label": "二中二",
+      "rateKey": "linked-number-2-2",
+      "rate": "60",
+      "probability": {
+        "fraction": "5/392",
+        "value": 0.012755102040816327
+      },
+      "refundProbability": {
+        "fraction": "0",
+        "value": 0.0
+      },
+      "rtp": {
+        "fraction": "75/98",
+        "value": 0.7653061224489796
+      },
+      "lossRate": {
+        "fraction": "23/98",
+        "value": 0.23469387755102042
+      },
+      "rebateRate": {
+        "fraction": "1/10",
+        "value": 0.1
+      },
+      "rebateEffectiveRate": {
+        "fraction": "1/10",
+        "value": 0.1
+      },
+      "lossAfterRebate": {
+        "fraction": "33/245",
+        "value": 0.1346938775510204
+      },
+      "condition": "已保存",
+      "notes": "仅六个正码"
+    },
+    {
+      "group": "连码",
+      "label": "特串",
+      "rateKey": "special-pair",
+      "rate": "150",
+      "probability": {
+        "fraction": "1/196",
+        "value": 0.00510204081632653
+      },
+      "refundProbability": {
+        "fraction": "0",
+        "value": 0.0
+      },
+      "rtp": {
+        "fraction": "75/98",
+        "value": 0.7653061224489796
+      },
+      "lossRate": {
+        "fraction": "23/98",
+        "value": 0.23469387755102042
+      },
+      "rebateRate": {
+        "fraction": "1/10",
+        "value": 0.1
+      },
+      "rebateEffectiveRate": {
+        "fraction": "1/10",
+        "value": 0.1
+      },
+      "lossAfterRebate": {
+        "fraction": "33/245",
+        "value": 0.1346938775510204
+      },
+      "condition": "已保存",
+      "notes": "一个正码＋一个特码，两个号码无顺序要求"
+    },
+    {
+      "group": "连肖",
+      "label": "2连肖：不含马",
+      "rateKey": "zodiac-2",
+      "rate": "4",
+      "probability": {
+        "fraction": "209801/1022626",
+        "value": 0.2051590708626614
+      },
+      "refundProbability": {
+        "fraction": "0",
+        "value": 0.0
+      },
+      "rtp": {
+        "fraction": "419602/511313",
+        "value": 0.8206362834506457
+      },
+      "lossRate": {
+        "fraction": "91711/511313",
+        "value": 0.17936371654935432
+      },
+      "rebateRate": {
+        "fraction": "1/100",
+        "value": 0.01
+      },
+      "rebateEffectiveRate": {
+        "fraction": "1/100",
+        "value": 0.01
+      },
+      "lossAfterRebate": {
+        "fraction": "8659787/51131300",
+        "value": 0.1693637165493543
+      },
+      "condition": "已保存",
+      "notes": "七码中每个所选生肖至少出现一次"
+    },
+    {
+      "group": "连肖",
+      "label": "2连肖：含马",
+      "rateKey": "zodiac-2",
+      "rate": "3.8",
+      "probability": {
+        "fraction": "744427/3067878",
+        "value": 0.24265208720816148
+      },
+      "refundProbability": {
+        "fraction": "0",
+        "value": 0.0
+      },
+      "rtp": {
+        "fraction": "14144113/15339390",
+        "value": 0.9220779313910136
+      },
+      "lossRate": {
+        "fraction": "1195277/15339390",
+        "value": 0.0779220686089864
+      },
+      "rebateRate": {
+        "fraction": "1/100",
+        "value": 0.01
+      },
+      "rebateEffectiveRate": {
+        "fraction": "1/100",
+        "value": 0.01
+      },
+      "lossAfterRebate": {
+        "fraction": "10418831/153393900",
+        "value": 0.0679220686089864
+      },
+      "condition": "已保存",
+      "notes": "七码中每个所选生肖至少出现一次"
+    },
+    {
+      "group": "连肖",
+      "label": "3连肖：不含马",
+      "rateKey": "zodiac-3",
+      "rate": "10.5",
+      "probability": {
+        "fraction": "288003/3579191",
+        "value": 0.08046594886945123
+      },
+      "refundProbability": {
+        "fraction": "0",
+        "value": 0.0
+      },
+      "rtp": {
+        "fraction": "864009/1022626",
+        "value": 0.8448924631292378
+      },
+      "lossRate": {
+        "fraction": "158617/1022626",
+        "value": 0.15510753687076215
+      },
+      "rebateRate": {
+        "fraction": "1/100",
+        "value": 0.01
+      },
+      "rebateEffectiveRate": {
+        "fraction": "1/100",
+        "value": 0.01
+      },
+      "lossAfterRebate": {
+        "fraction": "7419537/51131300",
+        "value": 0.14510753687076214
+      },
+      "condition": "已保存",
+      "notes": "七码中每个所选生肖至少出现一次"
+    },
+    {
+      "group": "连肖",
+      "label": "3连肖：含马",
+      "rateKey": "zodiac-3",
+      "rate": "8.5",
+      "probability": {
+        "fraction": "2060539/21475146",
+        "value": 0.09594994138805855
+      },
+      "refundProbability": {
+        "fraction": "0",
+        "value": 0.0
+      },
+      "rtp": {
+        "fraction": "35029163/42950292",
+        "value": 0.8155745017984977
+      },
+      "lossRate": {
+        "fraction": "7921129/42950292",
+        "value": 0.18442549820150234
+      },
+      "rebateRate": {
+        "fraction": "1/100",
+        "value": 0.01
+      },
+      "rebateEffectiveRate": {
+        "fraction": "1/100",
+        "value": 0.01
+      },
+      "lossAfterRebate": {
+        "fraction": "46822663/268439325",
+        "value": 0.17442549820150233
+      },
+      "condition": "已保存",
+      "notes": "七码中每个所选生肖至少出现一次"
+    },
+    {
+      "group": "连肖",
+      "label": "4连肖：不含马",
+      "rateKey": "zodiac-4",
+      "rate": "30",
+      "probability": {
+        "fraction": "98496/3579191",
+        "value": 0.02751906785639548
+      },
+      "refundProbability": {
+        "fraction": "0",
+        "value": 0.0
+      },
+      "rtp": {
+        "fraction": "2954880/3579191",
+        "value": 0.8255720356918644
+      },
+      "lossRate": {
+        "fraction": "624311/3579191",
+        "value": 0.17442796430813556
+      },
+      "rebateRate": {
+        "fraction": "1/100",
+        "value": 0.01
+      },
+      "rebateEffectiveRate": {
+        "fraction": "1/100",
+        "value": 0.01
+      },
+      "lossAfterRebate": {
+        "fraction": "58851909/357919100",
+        "value": 0.16442796430813555
+      },
+      "condition": "已保存",
+      "notes": "七码中每个所选生肖至少出现一次"
+    },
+    {
+      "group": "连肖",
+      "label": "4连肖：含马",
+      "rateKey": "zodiac-4",
+      "rate": "28",
+      "probability": {
+        "fraction": "355625/10737573",
+        "value": 0.03311968170088343
+      },
+      "refundProbability": {
+        "fraction": "0",
+        "value": 0.0
+      },
+      "rtp": {
+        "fraction": "1422500/1533939",
+        "value": 0.9273510876247361
+      },
+      "lossRate": {
+        "fraction": "111439/1533939",
+        "value": 0.07264891237526394
+      },
+      "rebateRate": {
+        "fraction": "1/100",
+        "value": 0.01
+      },
+      "rebateEffectiveRate": {
+        "fraction": "1/100",
+        "value": 0.01
+      },
+      "lossAfterRebate": {
+        "fraction": "9609961/153393900",
+        "value": 0.06264891237526395
+      },
+      "condition": "已保存",
+      "notes": "七码中每个所选生肖至少出现一次"
+    },
+    {
+      "group": "连肖",
+      "label": "5连肖：不含马",
+      "rateKey": "zodiac-5",
+      "rate": "98",
+      "probability": {
+        "fraction": "3968/511313",
+        "value": 0.007760412897774944
+      },
+      "refundProbability": {
+        "fraction": "0",
+        "value": 0.0
+      },
+      "rtp": {
+        "fraction": "388864/511313",
+        "value": 0.7605204639819445
+      },
+      "lossRate": {
+        "fraction": "122449/511313",
+        "value": 0.23947953601805547
+      },
+      "rebateRate": {
+        "fraction": "1/100",
+        "value": 0.01
+      },
+      "rebateEffectiveRate": {
+        "fraction": "1/100",
+        "value": 0.01
+      },
+      "lossAfterRebate": {
+        "fraction": "11733587/51131300",
+        "value": 0.22947953601805549
+      },
+      "condition": "已保存",
+      "notes": "七码中每个所选生肖至少出现一次"
+    },
+    {
+      "group": "连肖",
+      "label": "5连肖：含马",
+      "rateKey": "zodiac-5",
+      "rate": "85",
+      "probability": {
+        "fraction": "14480/1533939",
+        "value": 0.009439749559793447
+      },
+      "refundProbability": {
+        "fraction": "0",
+        "value": 0.0
+      },
+      "rtp": {
+        "fraction": "1230800/1533939",
+        "value": 0.802378712582443
+      },
+      "lossRate": {
+        "fraction": "303139/1533939",
+        "value": 0.19762128741755702
+      },
+      "rebateRate": {
+        "fraction": "1/100",
+        "value": 0.01
+      },
+      "rebateEffectiveRate": {
+        "fraction": "1/100",
+        "value": 0.01
+      },
+      "lossAfterRebate": {
+        "fraction": "28779961/153393900",
+        "value": 0.18762128741755701
+      },
+      "condition": "已保存",
+      "notes": "七码中每个所选生肖至少出现一次"
+    },
+    {
+      "group": "连尾",
+      "label": "2连尾：不含0尾",
+      "rateKey": "tail-2",
+      "rate": "3",
+      "probability": {
+        "fraction": "320005/1115592",
+        "value": 0.28684770059304837
+      },
+      "refundProbability": {
+        "fraction": "0",
+        "value": 0.0
+      },
+      "rtp": {
+        "fraction": "320005/371864",
+        "value": 0.8605431017791451
+      },
+      "lossRate": {
+        "fraction": "51859/371864",
+        "value": 0.13945689822085494
+      },
+      "rebateRate": {
+        "fraction": "1/100",
+        "value": 0.01
+      },
+      "rebateEffectiveRate": {
+        "fraction": "1/100",
+        "value": 0.01
+      },
+      "lossAfterRebate": {
+        "fraction": "1203509/9296600",
+        "value": 0.12945689822085493
+      },
+      "condition": "已保存",
+      "notes": "七码中每个所选尾数至少出现一次"
+    },
+    {
+      "group": "连尾",
+      "label": "2连尾：含0尾",
+      "rateKey": "tail-2",
+      "rate": "3",
+      "probability": {
+        "fraction": "744427/3067878",
+        "value": 0.24265208720816148
+      },
+      "refundProbability": {
+        "fraction": "0",
+        "value": 0.0
+      },
+      "rtp": {
+        "fraction": "744427/1022626",
+        "value": 0.7279562616244845
+      },
+      "lossRate": {
+        "fraction": "278199/1022626",
+        "value": 0.2720437383755156
+      },
+      "rebateRate": {
+        "fraction": "1/100",
+        "value": 0.01
+      },
+      "rebateEffectiveRate": {
+        "fraction": "1/100",
+        "value": 0.01
+      },
+      "lossAfterRebate": {
+        "fraction": "13398637/51131300",
+        "value": 0.2620437383755156
+      },
+      "condition": "已保存",
+      "notes": "七码中每个所选尾数至少出现一次"
+    },
+    {
+      "group": "连尾",
+      "label": "3连尾：不含0尾",
+      "rateKey": "tail-3",
+      "rate": "6.3",
+      "probability": {
+        "fraction": "151975/1115592",
+        "value": 0.136228119240726
+      },
+      "refundProbability": {
+        "fraction": "0",
+        "value": 0.0
+      },
+      "rtp": {
+        "fraction": "638295/743728",
+        "value": 0.8582371512165738
+      },
+      "lossRate": {
+        "fraction": "105433/743728",
+        "value": 0.1417628487834262
+      },
+      "rebateRate": {
+        "fraction": "1/100",
+        "value": 0.01
+      },
+      "rebateEffectiveRate": {
+        "fraction": "1/100",
+        "value": 0.01
+      },
+      "lossAfterRebate": {
+        "fraction": "2449893/18593200",
+        "value": 0.1317628487834262
+      },
+      "condition": "已保存",
+      "notes": "七码中每个所选尾数至少出现一次"
+    },
+    {
+      "group": "连尾",
+      "label": "3连尾：含0尾",
+      "rateKey": "tail-3",
+      "rate": "6.3",
+      "probability": {
+        "fraction": "3274455/28633528",
+        "value": 0.11435737154010502
+      },
+      "refundProbability": {
+        "fraction": "0",
+        "value": 0.0
+      },
+      "rtp": {
+        "fraction": "5894019/8181008",
+        "value": 0.7204514407026615
+      },
+      "lossRate": {
+        "fraction": "2286989/8181008",
+        "value": 0.2795485592973384
+      },
+      "rebateRate": {
+        "fraction": "1/100",
+        "value": 0.01
+      },
+      "rebateEffectiveRate": {
+        "fraction": "1/100",
+        "value": 0.01
+      },
+      "lossAfterRebate": {
+        "fraction": "55129473/204525200",
+        "value": 0.2695485592973384
+      },
+      "condition": "已保存",
+      "notes": "七码中每个所选尾数至少出现一次"
+    },
+    {
+      "group": "连尾",
+      "label": "4连尾：不含0尾",
+      "rateKey": "tail-4",
+      "rate": "15",
+      "probability": {
+        "fraction": "824375/14316764",
+        "value": 0.057581098633741536
+      },
+      "refundProbability": {
+        "fraction": "0",
+        "value": 0.0
+      },
+      "rtp": {
+        "fraction": "12365625/14316764",
+        "value": 0.8637164795061231
+      },
+      "lossRate": {
+        "fraction": "1951139/14316764",
+        "value": 0.13628352049387696
+      },
+      "rebateRate": {
+        "fraction": "1/100",
+        "value": 0.01
+      },
+      "rebateEffectiveRate": {
+        "fraction": "1/100",
+        "value": 0.01
+      },
+      "lossAfterRebate": {
+        "fraction": "11299821/89479775",
+        "value": 0.12628352049387698
+      },
+      "condition": "已保存",
+      "notes": "七码中每个所选尾数至少出现一次"
+    },
+    {
+      "group": "连尾",
+      "label": "4连尾：含0尾",
+      "rateKey": "tail-4",
+      "rate": "15",
+      "probability": {
+        "fraction": "374125/7809144",
+        "value": 0.04790857999289039
+      },
+      "refundProbability": {
+        "fraction": "0",
+        "value": 0.0
+      },
+      "rtp": {
+        "fraction": "1870625/2603048",
+        "value": 0.7186286998933558
+      },
+      "lossRate": {
+        "fraction": "732423/2603048",
+        "value": 0.2813713001066442
+      },
+      "rebateRate": {
+        "fraction": "1/100",
+        "value": 0.01
+      },
+      "rebateEffectiveRate": {
+        "fraction": "1/100",
+        "value": 0.01
+      },
+      "lossAfterRebate": {
+        "fraction": "17659813/65076200",
+        "value": 0.27137130010664423
+      },
+      "condition": "已保存",
+      "notes": "七码中每个所选尾数至少出现一次"
+    },
+    {
+      "group": "平码 / 平特",
+      "label": "平码（六个正码）",
+      "rateKey": "flat-number",
+      "rate": "7",
+      "probability": {
+        "fraction": "6/49",
+        "value": 0.12244897959183673
+      },
+      "refundProbability": {
+        "fraction": "0",
+        "value": 0.0
+      },
+      "rtp": {
+        "fraction": "6/7",
+        "value": 0.8571428571428571
+      },
+      "lossRate": {
+        "fraction": "1/7",
+        "value": 0.14285714285714285
+      },
+      "rebateRate": {
+        "fraction": "1/100",
+        "value": 0.01
+      },
+      "rebateEffectiveRate": {
+        "fraction": "1/100",
+        "value": 0.01
+      },
+      "lossAfterRebate": {
+        "fraction": "93/700",
+        "value": 0.13285714285714287
+      },
+      "condition": "已保存",
+      "notes": ""
+    },
+    {
+      "group": "平码 / 平特",
+      "label": "平特号码（正码＋特码）",
+      "rateKey": "flat-number",
+      "rate": "7",
+      "probability": {
+        "fraction": "1/7",
+        "value": 0.14285714285714285
+      },
+      "refundProbability": {
+        "fraction": "0",
+        "value": 0.0
+      },
+      "rtp": {
+        "fraction": "1",
+        "value": 1.0
+      },
+      "lossRate": {
+        "fraction": "0",
+        "value": 0.0
+      },
+      "rebateRate": {
+        "fraction": "1/100",
+        "value": 0.01
+      },
+      "rebateEffectiveRate": {
+        "fraction": "1/100",
+        "value": 0.01
+      },
+      "lossAfterRebate": {
+        "fraction": "-1/100",
+        "value": -0.01
+      },
+      "condition": "已保存",
+      "notes": "与平码共用7倍赔率，但判断范围不同"
+    },
+    {
+      "group": "平码 / 平特",
+      "label": "平特肖：非马",
+      "rateKey": "flat-zodiac",
+      "rate": "2.05",
+      "probability": {
+        "fraction": "7139/15134",
+        "value": 0.47171930751949254
+      },
+      "refundProbability": {
+        "fraction": "0",
+        "value": 0.0
+      },
+      "rtp": {
+        "fraction": "292699/302680",
+        "value": 0.9670245804149596
+      },
+      "lossRate": {
+        "fraction": "9981/302680",
+        "value": 0.03297541958504031
+      },
+      "rebateRate": {
+        "fraction": "1/100",
+        "value": 0.01
+      },
+      "rebateEffectiveRate": {
+        "fraction": "1/100",
+        "value": 0.01
+      },
+      "lossAfterRebate": {
+        "fraction": "34771/1513400",
+        "value": 0.022975419585040308
+      },
+      "condition": "已保存",
+      "notes": ""
+    },
+    {
+      "group": "平码 / 平特",
+      "label": "平特肖：马",
+      "rateKey": "flat-zodiac",
+      "rate": "1.8",
+      "probability": {
+        "fraction": "12574/22701",
+        "value": 0.5538963041275715
+      },
+      "refundProbability": {
+        "fraction": "0",
+        "value": 0.0
+      },
+      "rtp": {
+        "fraction": "37722/37835",
+        "value": 0.9970133474296287
+      },
+      "lossRate": {
+        "fraction": "113/37835",
+        "value": 0.0029866525703713493
+      },
+      "rebateRate": {
+        "fraction": "1/100",
+        "value": 0.01
+      },
+      "rebateEffectiveRate": {
+        "fraction": "1/100",
+        "value": 0.01
+      },
+      "lossAfterRebate": {
+        "fraction": "-5307/756700",
+        "value": -0.007013347429628651
+      },
+      "condition": "已保存",
+      "notes": ""
+    },
+    {
+      "group": "平码 / 平特",
+      "label": "平特尾：非0尾",
+      "rateKey": "flat-tail",
+      "rate": "1.8",
+      "probability": {
+        "fraction": "12574/22701",
+        "value": 0.5538963041275715
+      },
+      "refundProbability": {
+        "fraction": "0",
+        "value": 0.0
+      },
+      "rtp": {
+        "fraction": "37722/37835",
+        "value": 0.9970133474296287
+      },
+      "lossRate": {
+        "fraction": "113/37835",
+        "value": 0.0029866525703713493
+      },
+      "rebateRate": {
+        "fraction": "1/100",
+        "value": 0.01
+      },
+      "rebateEffectiveRate": {
+        "fraction": "1/100",
+        "value": 0.01
+      },
+      "lossAfterRebate": {
+        "fraction": "-5307/756700",
+        "value": -0.007013347429628651
+      },
+      "condition": "已保存",
+      "notes": ""
+    },
+    {
+      "group": "平码 / 平特",
+      "label": "平特尾：0尾",
+      "rateKey": "zero-tail",
+      "rate": "2.05",
+      "probability": {
+        "fraction": "7139/15134",
+        "value": 0.47171930751949254
+      },
+      "refundProbability": {
+        "fraction": "0",
+        "value": 0.0
+      },
+      "rtp": {
+        "fraction": "292699/302680",
+        "value": 0.9670245804149596
+      },
+      "lossRate": {
+        "fraction": "9981/302680",
+        "value": 0.03297541958504031
+      },
+      "rebateRate": {
+        "fraction": "1/100",
+        "value": 0.01
+      },
+      "rebateEffectiveRate": {
+        "fraction": "1/100",
+        "value": 0.01
+      },
+      "lossAfterRebate": {
+        "fraction": "34771/1513400",
+        "value": 0.022975419585040308
+      },
+      "condition": "已保存",
+      "notes": ""
+    },
+    {
+      "group": "平特任中",
+      "label": "1粒任中",
+      "rateKey": "flat-any-1",
+      "rate": "6.5",
+      "probability": {
+        "fraction": "1/7",
+        "value": 0.14285714285714285
+      },
+      "refundProbability": {
+        "fraction": "0",
+        "value": 0.0
+      },
+      "rtp": {
+        "fraction": "13/14",
+        "value": 0.9285714285714286
+      },
+      "lossRate": {
+        "fraction": "1/14",
+        "value": 0.07142857142857142
+      },
+      "rebateRate": {
+        "fraction": "1/100",
+        "value": 0.01
+      },
+      "rebateEffectiveRate": {
+        "fraction": "1/100",
+        "value": 0.01
+      },
+      "lossAfterRebate": {
+        "fraction": "43/700",
+        "value": 0.06142857142857143
+      },
+      "condition": "已保存",
+      "notes": "一组中任意一个即中奖，多中也只赔一组"
+    },
+    {
+      "group": "平特任中",
+      "label": "2粒任中",
+      "rateKey": "flat-any-2",
+      "rate": "3.5",
+      "probability": {
+        "fraction": "15/56",
+        "value": 0.26785714285714285
+      },
+      "refundProbability": {
+        "fraction": "0",
+        "value": 0.0
+      },
+      "rtp": {
+        "fraction": "15/16",
+        "value": 0.9375
+      },
+      "lossRate": {
+        "fraction": "1/16",
+        "value": 0.0625
+      },
+      "rebateRate": {
+        "fraction": "1/100",
+        "value": 0.01
+      },
+      "rebateEffectiveRate": {
+        "fraction": "1/100",
+        "value": 0.01
+      },
+      "lossAfterRebate": {
+        "fraction": "21/400",
+        "value": 0.0525
+      },
+      "condition": "已保存",
+      "notes": "一组中任意一个即中奖，多中也只赔一组"
+    },
+    {
+      "group": "平特任中",
+      "label": "3粒任中",
+      "rateKey": "flat-any-3",
+      "rate": "2.5",
+      "probability": {
+        "fraction": "124/329",
+        "value": 0.3768996960486322
+      },
+      "refundProbability": {
+        "fraction": "0",
+        "value": 0.0
+      },
+      "rtp": {
+        "fraction": "310/329",
+        "value": 0.9422492401215805
+      },
+      "lossRate": {
+        "fraction": "19/329",
+        "value": 0.057750759878419454
+      },
+      "rebateRate": {
+        "fraction": "1/100",
+        "value": 0.01
+      },
+      "rebateEffectiveRate": {
+        "fraction": "1/100",
+        "value": 0.01
+      },
+      "lossAfterRebate": {
+        "fraction": "1571/32900",
+        "value": 0.04775075987841945
+      },
+      "condition": "已保存",
+      "notes": "一组中任意一个即中奖，多中也只赔一组"
+    },
+    {
+      "group": "平特任中",
+      "label": "4粒任中",
+      "rateKey": "flat-any-4",
+      "rate": "2",
+      "probability": {
+        "fraction": "7139/15134",
+        "value": 0.47171930751949254
+      },
+      "refundProbability": {
+        "fraction": "0",
+        "value": 0.0
+      },
+      "rtp": {
+        "fraction": "7139/7567",
+        "value": 0.9434386150389851
+      },
+      "lossRate": {
+        "fraction": "428/7567",
+        "value": 0.056561384961014934
+      },
+      "rebateRate": {
+        "fraction": "1/100",
+        "value": 0.01
+      },
+      "rebateEffectiveRate": {
+        "fraction": "1/100",
+        "value": 0.01
+      },
+      "lossAfterRebate": {
+        "fraction": "35233/756700",
+        "value": 0.04656138496101493
+      },
+      "condition": "已保存",
+      "notes": "一组中任意一个即中奖，多中也只赔一组"
+    },
+    {
+      "group": "平特任中",
+      "label": "5粒任中",
+      "rateKey": "flat-any-5",
+      "rate": "1.75",
+      "probability": {
+        "fraction": "12574/22701",
+        "value": 0.5538963041275715
+      },
+      "refundProbability": {
+        "fraction": "0",
+        "value": 0.0
+      },
+      "rtp": {
+        "fraction": "6287/6486",
+        "value": 0.96931853222325
+      },
+      "lossRate": {
+        "fraction": "199/6486",
+        "value": 0.030681467776749922
+      },
+      "rebateRate": {
+        "fraction": "1/100",
+        "value": 0.01
+      },
+      "rebateEffectiveRate": {
+        "fraction": "1/100",
+        "value": 0.01
+      },
+      "lossAfterRebate": {
+        "fraction": "6707/324300",
+        "value": 0.020681467776749923
+      },
+      "condition": "已保存",
+      "notes": "一组中任意一个即中奖，多中也只赔一组"
+    },
+    {
+      "group": "不中",
+      "label": "5不中",
+      "rateKey": "not-hit-5",
+      "rate": "2",
+      "probability": {
+        "fraction": "10127/22701",
+        "value": 0.44610369587242854
+      },
+      "refundProbability": {
+        "fraction": "0",
+        "value": 0.0
+      },
+      "rtp": {
+        "fraction": "20254/22701",
+        "value": 0.8922073917448571
+      },
+      "lossRate": {
+        "fraction": "2447/22701",
+        "value": 0.10779260825514295
+      },
+      "rebateRate": {
+        "fraction": "1/100",
+        "value": 0.01
+      },
+      "rebateEffectiveRate": {
+        "fraction": "1/100",
+        "value": 0.01
+      },
+      "lossAfterRebate": {
+        "fraction": "221999/2270100",
+        "value": 0.09779260825514295
+      },
+      "condition": "已保存",
+      "notes": ""
+    },
+    {
+      "group": "不中",
+      "label": "6不中",
+      "rateKey": "not-hit-6",
+      "rate": "2.4",
+      "probability": {
+        "fraction": "374699/998844",
+        "value": 0.3751326533472694
+      },
+      "refundProbability": {
+        "fraction": "0",
+        "value": 0.0
+      },
+      "rtp": {
+        "fraction": "374699/416185",
+        "value": 0.9003183680334467
+      },
+      "lossRate": {
+        "fraction": "41486/416185",
+        "value": 0.09968163196655333
+      },
+      "rebateRate": {
+        "fraction": "1/100",
+        "value": 0.01
+      },
+      "rebateEffectiveRate": {
+        "fraction": "1/100",
+        "value": 0.01
+      },
+      "lossAfterRebate": {
+        "fraction": "746483/8323700",
+        "value": 0.08968163196655334
+      },
+      "condition": "已保存",
+      "notes": ""
+    },
+    {
+      "group": "不中",
+      "label": "7不中",
+      "rateKey": "not-hit-7",
+      "rate": "2.9",
+      "probability": {
+        "fraction": "1124097/3579191",
+        "value": 0.31406454698841163
+      },
+      "refundProbability": {
+        "fraction": "0",
+        "value": 0.0
+      },
+      "rtp": {
+        "fraction": "32598813/35791910",
+        "value": 0.9107871862663938
+      },
+      "lossRate": {
+        "fraction": "3193097/35791910",
+        "value": 0.08921281373360627
+      },
+      "rebateRate": {
+        "fraction": "1/100",
+        "value": 0.01
+      },
+      "rebateEffectiveRate": {
+        "fraction": "1/100",
+        "value": 0.01
+      },
+      "lossAfterRebate": {
+        "fraction": "28351779/357919100",
+        "value": 0.07921281373360628
+      },
+      "condition": "已保存",
+      "notes": ""
+    },
+    {
+      "group": "不中",
+      "label": "8不中",
+      "rateKey": "not-hit-8",
+      "rate": "3.5",
+      "probability": {
+        "fraction": "1873495/7158382",
+        "value": 0.26172045582367637
+      },
+      "refundProbability": {
+        "fraction": "0",
+        "value": 0.0
+      },
+      "rtp": {
+        "fraction": "1873495/2045252",
+        "value": 0.9160215953828672
+      },
+      "lossRate": {
+        "fraction": "171757/2045252",
+        "value": 0.08397840461713275
+      },
+      "rebateRate": {
+        "fraction": "1/100",
+        "value": 0.01
+      },
+      "rebateEffectiveRate": {
+        "fraction": "1/100",
+        "value": 0.01
+      },
+      "lossAfterRebate": {
+        "fraction": "945653/12782825",
+        "value": 0.07397840461713276
+      },
+      "condition": "已保存",
+      "notes": ""
+    },
+    {
+      "group": "不中",
+      "label": "9不中",
+      "rateKey": "not-hit-9",
+      "rate": "4",
+      "probability": {
+        "fraction": "776815/3579191",
+        "value": 0.21703647556109745
+      },
+      "refundProbability": {
+        "fraction": "0",
+        "value": 0.0
+      },
+      "rtp": {
+        "fraction": "3107260/3579191",
+        "value": 0.8681459022443898
+      },
+      "lossRate": {
+        "fraction": "471931/3579191",
+        "value": 0.13185409775561013
+      },
+      "rebateRate": {
+        "fraction": "1/100",
+        "value": 0.01
+      },
+      "rebateEffectiveRate": {
+        "fraction": "1/100",
+        "value": 0.01
+      },
+      "lossAfterRebate": {
+        "fraction": "43613909/357919100",
+        "value": 0.12185409775561014
+      },
+      "condition": "已保存",
+      "notes": ""
+    },
+    {
+      "group": "不中",
+      "label": "10不中",
+      "rateKey": "not-hit-10",
+      "rate": "5",
+      "probability": {
+        "fraction": "466089/2603048",
+        "value": 0.1790550923379054
+      },
+      "refundProbability": {
+        "fraction": "0",
+        "value": 0.0
+      },
+      "rtp": {
+        "fraction": "2330445/2603048",
+        "value": 0.8952754616895271
+      },
+      "lossRate": {
+        "fraction": "272603/2603048",
+        "value": 0.10472453831047296
+      },
+      "rebateRate": {
+        "fraction": "1/100",
+        "value": 0.01
+      },
+      "rebateEffectiveRate": {
+        "fraction": "1/100",
+        "value": 0.01
+      },
+      "lossAfterRebate": {
+        "fraction": "6164313/65076200",
+        "value": 0.09472453831047295
+      },
+      "condition": "已保存",
+      "notes": ""
+    },
+    {
+      "group": "49和局待确认",
+      "label": "大：49退本",
+      "rateKey": "attribute",
+      "rate": "1.9",
+      "probability": {
+        "fraction": "24/49",
+        "value": 0.4897959183673469
+      },
+      "refundProbability": {
+        "fraction": "1/49",
+        "value": 0.02040816326530612
+      },
+      "rtp": {
+        "fraction": "233/245",
+        "value": 0.9510204081632653
+      },
+      "lossRate": {
+        "fraction": "12/245",
+        "value": 0.04897959183673469
+      },
+      "rebateRate": {
+        "fraction": "1/100",
+        "value": 0.01
+      },
+      "rebateEffectiveRate": {
+        "fraction": "12/1225",
+        "value": 0.009795918367346938
+      },
+      "lossAfterRebate": {
+        "fraction": "48/1225",
+        "value": 0.03918367346938775
+      },
+      "condition": "条件测算：49和局未保存",
+      "notes": ""
+    },
+    {
+      "group": "49和局待确认",
+      "label": "小：49退本",
+      "rateKey": "attribute",
+      "rate": "1.9",
+      "probability": {
+        "fraction": "24/49",
+        "value": 0.4897959183673469
+      },
+      "refundProbability": {
+        "fraction": "1/49",
+        "value": 0.02040816326530612
+      },
+      "rtp": {
+        "fraction": "233/245",
+        "value": 0.9510204081632653
+      },
+      "lossRate": {
+        "fraction": "12/245",
+        "value": 0.04897959183673469
+      },
+      "rebateRate": {
+        "fraction": "1/100",
+        "value": 0.01
+      },
+      "rebateEffectiveRate": {
+        "fraction": "12/1225",
+        "value": 0.009795918367346938
+      },
+      "lossAfterRebate": {
+        "fraction": "48/1225",
+        "value": 0.03918367346938775
+      },
+      "condition": "条件测算：49和局未保存",
+      "notes": ""
+    },
+    {
+      "group": "49和局待确认",
+      "label": "单：49退本",
+      "rateKey": "attribute",
+      "rate": "1.9",
+      "probability": {
+        "fraction": "24/49",
+        "value": 0.4897959183673469
+      },
+      "refundProbability": {
+        "fraction": "1/49",
+        "value": 0.02040816326530612
+      },
+      "rtp": {
+        "fraction": "233/245",
+        "value": 0.9510204081632653
+      },
+      "lossRate": {
+        "fraction": "12/245",
+        "value": 0.04897959183673469
+      },
+      "rebateRate": {
+        "fraction": "1/100",
+        "value": 0.01
+      },
+      "rebateEffectiveRate": {
+        "fraction": "12/1225",
+        "value": 0.009795918367346938
+      },
+      "lossAfterRebate": {
+        "fraction": "48/1225",
+        "value": 0.03918367346938775
+      },
+      "condition": "条件测算：49和局未保存",
+      "notes": ""
+    },
+    {
+      "group": "49和局待确认",
+      "label": "双：49退本",
+      "rateKey": "attribute",
+      "rate": "1.9",
+      "probability": {
+        "fraction": "24/49",
+        "value": 0.4897959183673469
+      },
+      "refundProbability": {
+        "fraction": "1/49",
+        "value": 0.02040816326530612
+      },
+      "rtp": {
+        "fraction": "233/245",
+        "value": 0.9510204081632653
+      },
+      "lossRate": {
+        "fraction": "12/245",
+        "value": 0.04897959183673469
+      },
+      "rebateRate": {
+        "fraction": "1/100",
+        "value": 0.01
+      },
+      "rebateEffectiveRate": {
+        "fraction": "12/1225",
+        "value": 0.009795918367346938
+      },
+      "lossAfterRebate": {
+        "fraction": "48/1225",
+        "value": 0.03918367346938775
+      },
+      "condition": "条件测算：49和局未保存",
+      "notes": ""
+    },
+    {
+      "group": "49和局待确认",
+      "label": "合单：49退本",
+      "rateKey": "attribute",
+      "rate": "1.9",
+      "probability": {
+        "fraction": "24/49",
+        "value": 0.4897959183673469
+      },
+      "refundProbability": {
+        "fraction": "1/49",
+        "value": 0.02040816326530612
+      },
+      "rtp": {
+        "fraction": "233/245",
+        "value": 0.9510204081632653
+      },
+      "lossRate": {
+        "fraction": "12/245",
+        "value": 0.04897959183673469
+      },
+      "rebateRate": {
+        "fraction": "1/100",
+        "value": 0.01
+      },
+      "rebateEffectiveRate": {
+        "fraction": "12/1225",
+        "value": 0.009795918367346938
+      },
+      "lossAfterRebate": {
+        "fraction": "48/1225",
+        "value": 0.03918367346938775
+      },
+      "condition": "条件测算：49和局未保存",
+      "notes": ""
+    },
+    {
+      "group": "49和局待确认",
+      "label": "合双：49退本",
+      "rateKey": "attribute",
+      "rate": "1.9",
+      "probability": {
+        "fraction": "24/49",
+        "value": 0.4897959183673469
+      },
+      "refundProbability": {
+        "fraction": "1/49",
+        "value": 0.02040816326530612
+      },
+      "rtp": {
+        "fraction": "233/245",
+        "value": 0.9510204081632653
+      },
+      "lossRate": {
+        "fraction": "12/245",
+        "value": 0.04897959183673469
+      },
+      "rebateRate": {
+        "fraction": "1/100",
+        "value": 0.01
+      },
+      "rebateEffectiveRate": {
+        "fraction": "12/1225",
+        "value": 0.009795918367346938
+      },
+      "lossAfterRebate": {
+        "fraction": "48/1225",
+        "value": 0.03918367346938775
+      },
+      "condition": "条件测算：49和局未保存",
+      "notes": ""
+    },
+    {
+      "group": "49和局待确认",
+      "label": "六肖中特：不含马，49退本",
+      "rateKey": "any-6",
+      "rate": "1.9",
+      "probability": {
+        "fraction": "24/49",
+        "value": 0.4897959183673469
+      },
+      "refundProbability": {
+        "fraction": "1/49",
+        "value": 0.02040816326530612
+      },
+      "rtp": {
+        "fraction": "233/245",
+        "value": 0.9510204081632653
+      },
+      "lossRate": {
+        "fraction": "12/245",
+        "value": 0.04897959183673469
+      },
+      "rebateRate": {
+        "fraction": "3/100",
+        "value": 0.03
+      },
+      "rebateEffectiveRate": {
+        "fraction": "36/1225",
+        "value": 0.029387755102040815
+      },
+      "lossAfterRebate": {
+        "fraction": "24/1225",
+        "value": 0.019591836734693877
+      },
+      "condition": "条件测算：49和局未保存",
+      "notes": ""
+    },
+    {
+      "group": "49和局待确认",
+      "label": "六肖中特：含马，49退本",
+      "rateKey": "any-6",
+      "rate": "1.9",
+      "probability": {
+        "fraction": "24/49",
+        "value": 0.4897959183673469
+      },
+      "refundProbability": {
+        "fraction": "1/49",
+        "value": 0.02040816326530612
+      },
+      "rtp": {
+        "fraction": "233/245",
+        "value": 0.9510204081632653
+      },
+      "lossRate": {
+        "fraction": "12/245",
+        "value": 0.04897959183673469
+      },
+      "rebateRate": {
+        "fraction": "3/100",
+        "value": 0.03
+      },
+      "rebateEffectiveRate": {
+        "fraction": "36/1225",
+        "value": 0.029387755102040815
+      },
+      "lossAfterRebate": {
+        "fraction": "24/1225",
+        "value": 0.019591836734693877
+      },
+      "condition": "条件测算：49和局未保存",
+      "notes": ""
+    },
+    {
+      "group": "49和局待确认",
+      "label": "大：49正常判输赢",
+      "rateKey": "attribute",
+      "rate": "1.9",
+      "probability": {
+        "fraction": "25/49",
+        "value": 0.5102040816326531
+      },
+      "refundProbability": {
+        "fraction": "0",
+        "value": 0.0
+      },
+      "rtp": {
+        "fraction": "95/98",
+        "value": 0.9693877551020408
+      },
+      "lossRate": {
+        "fraction": "3/98",
+        "value": 0.030612244897959183
+      },
+      "rebateRate": {
+        "fraction": "1/100",
+        "value": 0.01
+      },
+      "rebateEffectiveRate": {
+        "fraction": "1/100",
+        "value": 0.01
+      },
+      "lossAfterRebate": {
+        "fraction": "101/4900",
+        "value": 0.020612244897959184
+      },
+      "condition": "条件测算：49和局未保存",
+      "notes": ""
+    },
+    {
+      "group": "49和局待确认",
+      "label": "小：49正常判输赢",
+      "rateKey": "attribute",
+      "rate": "1.9",
+      "probability": {
+        "fraction": "24/49",
+        "value": 0.4897959183673469
+      },
+      "refundProbability": {
+        "fraction": "0",
+        "value": 0.0
+      },
+      "rtp": {
+        "fraction": "228/245",
+        "value": 0.9306122448979591
+      },
+      "lossRate": {
+        "fraction": "17/245",
+        "value": 0.06938775510204082
+      },
+      "rebateRate": {
+        "fraction": "1/100",
+        "value": 0.01
+      },
+      "rebateEffectiveRate": {
+        "fraction": "1/100",
+        "value": 0.01
+      },
+      "lossAfterRebate": {
+        "fraction": "291/4900",
+        "value": 0.059387755102040814
+      },
+      "condition": "条件测算：49和局未保存",
+      "notes": ""
+    },
+    {
+      "group": "49和局待确认",
+      "label": "单：49正常判输赢",
+      "rateKey": "attribute",
+      "rate": "1.9",
+      "probability": {
+        "fraction": "25/49",
+        "value": 0.5102040816326531
+      },
+      "refundProbability": {
+        "fraction": "0",
+        "value": 0.0
+      },
+      "rtp": {
+        "fraction": "95/98",
+        "value": 0.9693877551020408
+      },
+      "lossRate": {
+        "fraction": "3/98",
+        "value": 0.030612244897959183
+      },
+      "rebateRate": {
+        "fraction": "1/100",
+        "value": 0.01
+      },
+      "rebateEffectiveRate": {
+        "fraction": "1/100",
+        "value": 0.01
+      },
+      "lossAfterRebate": {
+        "fraction": "101/4900",
+        "value": 0.020612244897959184
+      },
+      "condition": "条件测算：49和局未保存",
+      "notes": ""
+    },
+    {
+      "group": "49和局待确认",
+      "label": "双：49正常判输赢",
+      "rateKey": "attribute",
+      "rate": "1.9",
+      "probability": {
+        "fraction": "24/49",
+        "value": 0.4897959183673469
+      },
+      "refundProbability": {
+        "fraction": "0",
+        "value": 0.0
+      },
+      "rtp": {
+        "fraction": "228/245",
+        "value": 0.9306122448979591
+      },
+      "lossRate": {
+        "fraction": "17/245",
+        "value": 0.06938775510204082
+      },
+      "rebateRate": {
+        "fraction": "1/100",
+        "value": 0.01
+      },
+      "rebateEffectiveRate": {
+        "fraction": "1/100",
+        "value": 0.01
+      },
+      "lossAfterRebate": {
+        "fraction": "291/4900",
+        "value": 0.059387755102040814
+      },
+      "condition": "条件测算：49和局未保存",
+      "notes": ""
+    },
+    {
+      "group": "49和局待确认",
+      "label": "合单：49正常判输赢",
+      "rateKey": "attribute",
+      "rate": "1.9",
+      "probability": {
+        "fraction": "25/49",
+        "value": 0.5102040816326531
+      },
+      "refundProbability": {
+        "fraction": "0",
+        "value": 0.0
+      },
+      "rtp": {
+        "fraction": "95/98",
+        "value": 0.9693877551020408
+      },
+      "lossRate": {
+        "fraction": "3/98",
+        "value": 0.030612244897959183
+      },
+      "rebateRate": {
+        "fraction": "1/100",
+        "value": 0.01
+      },
+      "rebateEffectiveRate": {
+        "fraction": "1/100",
+        "value": 0.01
+      },
+      "lossAfterRebate": {
+        "fraction": "101/4900",
+        "value": 0.020612244897959184
+      },
+      "condition": "条件测算：49和局未保存",
+      "notes": ""
+    },
+    {
+      "group": "49和局待确认",
+      "label": "合双：49正常判输赢",
+      "rateKey": "attribute",
+      "rate": "1.9",
+      "probability": {
+        "fraction": "24/49",
+        "value": 0.4897959183673469
+      },
+      "refundProbability": {
+        "fraction": "0",
+        "value": 0.0
+      },
+      "rtp": {
+        "fraction": "228/245",
+        "value": 0.9306122448979591
+      },
+      "lossRate": {
+        "fraction": "17/245",
+        "value": 0.06938775510204082
+      },
+      "rebateRate": {
+        "fraction": "1/100",
+        "value": 0.01
+      },
+      "rebateEffectiveRate": {
+        "fraction": "1/100",
+        "value": 0.01
+      },
+      "lossAfterRebate": {
+        "fraction": "291/4900",
+        "value": 0.059387755102040814
+      },
+      "condition": "条件测算：49和局未保存",
+      "notes": ""
+    },
+    {
+      "group": "49和局待确认",
+      "label": "六肖中特：不含马，49正常判输赢",
+      "rateKey": "any-6",
+      "rate": "1.9",
+      "probability": {
+        "fraction": "24/49",
+        "value": 0.4897959183673469
+      },
+      "refundProbability": {
+        "fraction": "0",
+        "value": 0.0
+      },
+      "rtp": {
+        "fraction": "228/245",
+        "value": 0.9306122448979591
+      },
+      "lossRate": {
+        "fraction": "17/245",
+        "value": 0.06938775510204082
+      },
+      "rebateRate": {
+        "fraction": "3/100",
+        "value": 0.03
+      },
+      "rebateEffectiveRate": {
+        "fraction": "3/100",
+        "value": 0.03
+      },
+      "lossAfterRebate": {
+        "fraction": "193/4900",
+        "value": 0.03938775510204082
+      },
+      "condition": "条件测算：49和局未保存",
+      "notes": ""
+    },
+    {
+      "group": "49和局待确认",
+      "label": "六肖中特：含马，49正常判输赢",
+      "rateKey": "any-6",
+      "rate": "1.9",
+      "probability": {
+        "fraction": "25/49",
+        "value": 0.5102040816326531
+      },
+      "refundProbability": {
+        "fraction": "0",
+        "value": 0.0
+      },
+      "rtp": {
+        "fraction": "95/98",
+        "value": 0.9693877551020408
+      },
+      "lossRate": {
+        "fraction": "3/98",
+        "value": 0.030612244897959183
+      },
+      "rebateRate": {
+        "fraction": "3/100",
+        "value": 0.03
+      },
+      "rebateEffectiveRate": {
+        "fraction": "3/100",
+        "value": 0.03
+      },
+      "lossAfterRebate": {
+        "fraction": "3/4900",
+        "value": 0.0006122448979591836
+      },
+      "condition": "条件测算：49和局未保存",
+      "notes": ""
+    },
+    {
+      "group": "分档赔率未配置",
+      "label": "三中二：中2赔20，中3赔90",
+      "rateKey": "three-two,three-three",
+      "rate": "20 / 90",
+      "probability": {
+        "fraction": "95/2632",
+        "value": 0.03609422492401216
+      },
+      "refundProbability": {
+        "fraction": "0",
+        "value": 0.0
+      },
+      "rtp": {
+        "fraction": "75/94",
+        "value": 0.7978723404255319
+      },
+      "lossRate": {
+        "fraction": "19/94",
+        "value": 0.20212765957446807
+      },
+      "rebateRate": {
+        "fraction": "1/10",
+        "value": 0.1
+      },
+      "rebateEffectiveRate": {
+        "fraction": "1/10",
+        "value": 0.1
+      },
+      "lossAfterRebate": {
+        "fraction": "24/235",
+        "value": 0.10212765957446808
+      },
+      "condition": "仅原图两档假设，非当前已配置赔率",
+      "notes": "两档互斥；中三仅赔90，不另叠加中二",
+      "tiers": [
+        {
+          "key": "three-two",
+          "probability": {
+            "fraction": "645/18424",
+            "value": 0.035008684324793746
+          },
+          "rate": 20
+        },
+        {
+          "key": "three-three",
+          "probability": {
+            "fraction": "5/4606",
+            "value": 0.0010855405992184109
+          },
+          "rate": 90
+        }
+      ]
+    },
+    {
+      "group": "分档赔率未配置",
+      "label": "三中二：中2赔90，中3赔20",
+      "rateKey": "three-two,three-three",
+      "rate": "90 / 20",
+      "probability": {
+        "fraction": "95/2632",
+        "value": 0.03609422492401216
+      },
+      "refundProbability": {
+        "fraction": "0",
+        "value": 0.0
+      },
+      "rtp": {
+        "fraction": "4175/1316",
+        "value": 3.1724924012158056
+      },
+      "lossRate": {
+        "fraction": "-2859/1316",
+        "value": -2.1724924012158056
+      },
+      "rebateRate": {
+        "fraction": "1/10",
+        "value": 0.1
+      },
+      "rebateEffectiveRate": {
+        "fraction": "1/10",
+        "value": 0.1
+      },
+      "lossAfterRebate": {
+        "fraction": "-14953/6580",
+        "value": -2.2724924012158056
+      },
+      "condition": "仅原图两档假设，非当前已配置赔率",
+      "notes": "反向分档用于说明歧义，不能当已确认规则",
+      "tiers": [
+        {
+          "key": "three-two",
+          "probability": {
+            "fraction": "645/18424",
+            "value": 0.035008684324793746
+          },
+          "rate": 90
+        },
+        {
+          "key": "three-three",
+          "probability": {
+            "fraction": "5/4606",
+            "value": 0.0010855405992184109
+          },
+          "rate": 20
+        }
+      ]
+    },
+    {
+      "group": "分档赔率未配置",
+      "label": "二中特：双正码25，正特50",
+      "rateKey": "two-normal,two-special",
+      "rate": "25 / 50",
+      "probability": {
+        "fraction": "1/56",
+        "value": 0.017857142857142856
+      },
+      "refundProbability": {
+        "fraction": "0",
+        "value": 0.0
+      },
+      "rtp": {
+        "fraction": "225/392",
+        "value": 0.5739795918367347
+      },
+      "lossRate": {
+        "fraction": "167/392",
+        "value": 0.4260204081632653
+      },
+      "rebateRate": {
+        "fraction": "1/10",
+        "value": 0.1
+      },
+      "rebateEffectiveRate": {
+        "fraction": "1/10",
+        "value": 0.1
+      },
+      "lossAfterRebate": {
+        "fraction": "639/1960",
+        "value": 0.32602040816326533
+      },
+      "condition": "仅原图两档假设，非当前已配置赔率",
+      "notes": "两档互斥",
+      "tiers": [
+        {
+          "key": "two-normal",
+          "probability": {
+            "fraction": "5/392",
+            "value": 0.012755102040816327
+          },
+          "rate": 25
+        },
+        {
+          "key": "two-special",
+          "probability": {
+            "fraction": "1/196",
+            "value": 0.00510204081632653
+          },
+          "rate": 50
+        }
+      ]
+    },
+    {
+      "group": "分档赔率未配置",
+      "label": "二中特：双正码50，正特25",
+      "rateKey": "two-normal,two-special",
+      "rate": "50 / 25",
+      "probability": {
+        "fraction": "1/56",
+        "value": 0.017857142857142856
+      },
+      "refundProbability": {
+        "fraction": "0",
+        "value": 0.0
+      },
+      "rtp": {
+        "fraction": "75/98",
+        "value": 0.7653061224489796
+      },
+      "lossRate": {
+        "fraction": "23/98",
+        "value": 0.23469387755102042
+      },
+      "rebateRate": {
+        "fraction": "1/10",
+        "value": 0.1
+      },
+      "rebateEffectiveRate": {
+        "fraction": "1/10",
+        "value": 0.1
+      },
+      "lossAfterRebate": {
+        "fraction": "33/245",
+        "value": 0.1346938775510204
+      },
+      "condition": "仅原图两档假设，非当前已配置赔率",
+      "notes": "反向分档用于说明歧义，不能当已确认规则",
+      "tiers": [
+        {
+          "key": "two-normal",
+          "probability": {
+            "fraction": "5/392",
+            "value": 0.012755102040816327
+          },
+          "rate": 50
+        },
+        {
+          "key": "two-special",
+          "probability": {
+            "fraction": "1/196",
+            "value": 0.00510204081632653
+          },
+          "rate": 25
+        }
+      ]
+    }
+  ]
+}

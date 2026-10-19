@@ -1,0 +1,8 @@
+{
+  "date": "2026-10-15",
+  "rowsVerified": 80,
+  "settlementEvaluations": 5153,
+  "allSavedRateKeys": 52,
+  "method": "Exact weighted category occupancy and full-combination settlement against current settleBet",
+  "passed": true
+}
