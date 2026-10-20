@@ -15,12 +15,12 @@ import {browserSettlement} from '../src/settlement-preview.js';
 const date='2026-10-05';
 const defaults=()=>Object.fromEntries(['新','旧','港'].map(m=>[m,{...core.defaultOdds(),confirmed:true}]));
 const draws=Object.fromEntries(['新','旧','港'].map(m=>[m,{market:m,date,issue:'2026278',numbers:[1,2,3,4,5,6,49],sourceId:'manual'}]));
-const doc=(text,id='a',businessDate=date)=>parseDocument(text,{id,name:'测试账目',businessDate});
+const doc=(text,id='a',businessDate=date)=>parseDocument(text,{id,name:'小明',businessDate});
 const override=(rates,market='新')=>({name:'小明',markets:{[market]:{rates}}});
 const playerOdds={小明:override({'special-number':{rate:'40'},'flat-zodiac':{rate:'2.2',specialRate:'1.5'}})};
 
 test('玩家按市场和赔率档位覆盖，其余继承最新默认，不改变其他玩家',()=>{
-  const odds=defaults(),documents=[doc('小明：三边49各10\n平特肖马蛇各100\n张三：49各10\n平特肖马蛇各100')];
+  const odds=defaults(),documents=[doc('小明：三边49各10\n平特肖马蛇各100'),{...doc('张三：49各10\n平特肖马蛇各100','b'),name:'张三'}];
   const before=JSON.stringify(odds),result=core.settleDocuments(documents,draws,odds,date,{playerOdds});
   assert(result.complete);assert.equal(JSON.stringify(odds),before);
   const xm=result.entries.filter(e=>e.playerId==='小明'),zs=result.entries.filter(e=>e.playerId==='张三');
@@ -32,7 +32,7 @@ test('玩家按市场和赔率档位覆盖，其余继承最新默认，不改�
   assert.equal(updated.entries.find(e=>e.playerId==='小明'&&e.market==='旧').payoutCents,46000);
   const overview=ledgerOverview(documents,draws,{odds,playerOdds},{});
   assert.equal(overview.payoutCents,updated.payoutCents);
-  const card=ledgerReceipt({document:{id:'a'},result:updated,inputs:{kind:'current',selection:'a',documents,date,draws,settings:{odds,playerOdds}}});
+  const card=ledgerReceipt({document:{id:'a'},result:core.settleDocuments([documents[0]],draws,odds,date,{playerOdds}),inputs:{kind:'current',selection:'a',documents:[documents[0]],date,draws,settings:{odds,playerOdds}}});
   assert(card.rows.some(r=>r.rate==='1.5'&&r.detail==='马年生肖档'));
   assert(card.rows.some(r=>r.rate==='40'));assert(card.rows.some(r=>r.rate==='47'));
 });

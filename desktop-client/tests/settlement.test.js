@@ -126,7 +126,7 @@ test('赔付服务通过真实SQLite与IPC隔离市场、收件箱及账目，�
     if(url.includes('hkjc'))throw new Error('网络不可用');
     return new Response(JSON.stringify({code:200,data:[{type:'8',expect:'2026277',openTime:'2026-10-04 21:32:32',openCode:'41,23,14,31,13,32,11'}]}));
   };
-  const service=await install({electron:{app:{getPath:()=>dir},ipcMain:{handle:(name,fn)=>handlers.set(name,fn)}},window:()=>({webContents:sender}),ledger:{read:()=>({documents:[{id:'a',name:'账目A',text,businessDate:date,defaultPlayer:''}]})},inbox:{settlementDocuments:()=>[parseDocument('微信玩家：新11各50',{businessDate:date,id:'inbox-1'})]},fetcher});
+  const service=await install({electron:{app:{getPath:()=>dir},ipcMain:{handle:(name,fn)=>handlers.set(name,fn)}},window:()=>({webContents:sender}),ledger:{read:()=>({documents:[{id:'a',name:'账目A',text,businessDate:date,defaultPlayer:''}]})},inbox:{settlementDocuments:()=>[parseDocument('微信玩家：新11各50',{businessDate:date,id:'inbox-1',name:'微信玩家'})]},fetcher});
   t.after(()=>{service.close();fs.rmSync(dir,{recursive:true,force:true});});
   const call=(name,input)=>handlers.get('settlement:'+name)({sender},input);
   const first=await call('load',{date});first.settings.sources={新:['macaujc-new'],旧:[],港:['hkjc']};first.settings.odds.新.confirmed=true;await call('settings',first.settings);

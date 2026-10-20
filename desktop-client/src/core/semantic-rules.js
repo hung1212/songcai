@@ -1,5 +1,10 @@
-export const SEMANTIC_VERSION = 'semantic-20261018-1';
+export const SEMANTIC_VERSION = 'semantic-20261020-1';
 export const STANDARD_RULES = [
+  {id:'R51',text:'“各肖／每肖”明确按生肖计费，没有其他明确或可继承的逐肖玩法时，按特肖处理。“牛，猪，鸡，羊，各肖40元”是4肖各40元，共160元，不展成16个号码的640元；“各号／每号／各数”仍按对应号码逐号计费。单个生肖和生肖分类也按每肖份数计算，重复生肖保留重复份数，各市场分别计费。明确或可继承的平特肖继续按平特肖每肖计算；与明确特码、连肖每组或逐号数／号码同时冲突时须核对，不能静默改价或展开。只开出特码所属生肖才中特肖，普通生肖和本命年生肖使用特肖对应赔率，退水计入特肖玩法并按账单名配置。AI保留原生肖与单价，返回play特肖、basis每肖、amount40；不能改成特码或补造每号价格。原文和历史快照保留，旧错误核验随规则版本失效。'},
+  {id:'R50',text:'已有明确单价的投注后“=金额”或“＝金额”表示前面投注的小计，不是另一笔下注。例如“01.13.34.46.06.18各5=30米。”为6个号码各5元，共30元；核对相等就正常计账，无需缺号码或AI未完成提示。等号小计采用现有相邻完整投注／连续段核对范围，包含同一行全部分句、重复份数、多市场份数和跨行共价分组，不任意截取部分凑数，不跨玩家或明确边界。金额不符仍显示实际金额与差额，缺号、缺单价、号码非法、玩法或市场冲突仍须处理。只有等号前已有明确单价才识别同行小计；“01=30”继续表示01号投注30元，单独一行“=30”继续按已有合计规则。原文和历史快照保留，已核对且无其他疑点的等号小计不再被旧待核验状态阻止计账。'},
+  {id:'R49',text:'明确三中三标题后，连续多行号码只在末行写统一单价时，每行是一个独立三中三组，每组使用末行的各／每组金额。例如“雨：澳三中三。”后依次六行“10-28-07”“14-29-33”“24-12-29”“38-25-41”“18-48-09”“14-44-31各10米”，为雨的新澳三中三6组各10元，共60元；不能把行末号码当金额，不能把18个号码合成复式。支持常用号码分隔符、全角、中文单价，以及单价独占下一行。每组必须有三个不同01–49号码，重复列出的完整组按份数累计；组内重复或数量错误须核对。连续范围不跨空行、玩家、市场、玩法标题、合计或说明，已有金额的投注独立计算。保留每行分组、原文和行号；逐组按三个正码全中判断，特码不计入，沿用玩家赔率与退水。AI不得用单行候选覆盖跨行共价组，旧不适用核验失效，历史快照保留。'},
+  {id:'R48',text:'投注里的单字“门”是新澳门市场的简写，与新澳／澳相同。可作独立标题或同行前缀，“门猴龙每个号5米”在马年展开猴11、23、35、47及龙03、15、27、39，8个特码号码每号5元，共40元；下一行“10，19，21各5米”沿用新澳，为15元，两笔共55元。市场标题按原有规则开启新段并重置旧玩法，明确玩法优先；玩家身份不改变，不能把“雨”统一改为其他玩家。完整旧澳门、老门、新门等名称按完整词识别，普通姓名或说明中的门不作为市场证据，明确绑定的同名玩家优先。合计和段尾市场仍遵守既有范围、冲突规则；AI须保留新澳市场及原金额、选号。'},
+  {id:'R47',text:'“复四肖：兔虎牛羊马蛇。各5元。”是四连肖复式，从六个生肖任选四个，共15组，每组5元，总75元。“复N肖”“复N连肖”（中文或数字）是N连肖复式的简写，不是新玩家姓名，也不能展开为逐号特码。沿用原玩家及其各玩法赔率、退水设置，市场按既有标题和边界规则继承。支持冒号、空格、全角及标题续行；真实玩家姓名和明确绑定的同名默认玩家仍按原规则处理。AI保留连肖组数、生肖池、每组金额及原玩家，不改成特码或特肖。旧解析和不适用核验随版本失效，原文和历史结算快照保留。'},
   {id:'R46',text:'“二中二，5尾拖鸡各10”把5尾05、15、25、35、45，与鸡肖对应号码交叉配对。马年鸡为10、22、34、46，共5×4即20组二中二，每组10元，总200元。每组分别从尾数和生肖号码取一个，两个不同正码同时出现才中奖，特码不计入，按二中二赔率结算；不能改成2组、特串、连尾或所有号码任取二的复式。尾数是0至9，0尾仅有10、20、30、40；生肖号码按业务日期所属农历年展开，可能4或5号。两侧相同号码只排除该号码与自身组成的一组，其余跨侧配对保留，按实际有效组数计费并显示排除说明。可继承明确二中二标题，支持空格、标点、全角、中文金额及金额续行；不把前笔尾数和生肖传给后笔，市场和玩家沿用已有规则。多尾、多生肖、多个拖字、复式／胆拖混写、缺玩法、无金额及每肖／每尾／每号计费冲突仍待处理。AI保留play二中二、selection5尾拖鸡、basis每组、amount10，不改玩法、尾数、生肖、分组或金额。旧不适用核验失效，投注原文与已保存历史赔付保留。'},
   {id:'R44',text:'“澳289期：”“新澳第289期：”“香港第106期：”等市场加期号是业务标题，不是玩家姓名。期号数字不是选号或金额；保留原玩家及其退水设置，市场从标题向后生效，未明确玩法的后续投注按已有规则解析，不将标题拼进玩家名称。“平肖虎100”“2有虎蛇50”“平特一肖虎五十米”仍属标题前玩家，分别是平特肖、二连肖、平特肖，依该玩家各玩法退水率计算，无最低流水门槛。显式期号保留校验：市场加期号只约束同一玩家消息内该市场后续投注，以最近声明为准，不影响其他市场、其他玩家或标题前投注；没有市场的原有期号校验保持。支持全角数字、空格及冒号。真实玩家姓名如“澳289期玩家”不能截成业务标题；已明确的默认玩家同名优先保持。AI不得虚构新玩家、改退水率、删除明确期号或把期号当成投注金额。旧解析及AI缓存随版本失效，历史结算快照不覆盖。'},
   {id:'R45',text:'“特串、猴拖鸡每组5米”是猴与鸡两个生肖各自号码交叉配对，每组5元。马年猴为11、23、35、47，鸡为10、22、34、46，4×4共16组，总80元。只支持两个不同生肖各一个，以拖相连；特碰同义，可继承明确特串标题。按账目业务日期所属农历年展开，遇到本命生肖5号时依实际号码数量相乘计组。不能把8个号码合并任取二成28组，不能变成1组二连肖，也不计算同生肖内部配对。每组按一个正码加一个特码中奖，位置可互换，沿用特串赔率。复式／胆拖混写、多个拖字、同生肖互拖、多生肖一侧、无明确玩法以及每肖／每号计费冲突仍待处理。AI保留play特串、selection猴拖鸡、basis每组、amount原单价5，原文、市场、玩家及明确分组不改变；旧版不适用的核验随规则升级失效，历史赔付快照保留。'},
@@ -55,6 +60,10 @@ export function numberBasisEvidence(text) {
   const match = zodiac || unit;
   return match ? { ruleId: zodiac ? 'R01' : 'R02', field:'basis', quote:match[0], start:match.index, end:match.index+match[0].length } : null;
 }
+export function zodiacBasisEvidence(text) {
+  const match=text.match(/(?:各|每)肖/);
+  return match?{ruleId:'R51',field:'basis',quote:match[0],start:match.index,end:match.index+match[0].length}:null;
+}
 export function assistanceMatches(assistance, text, date, player='') {
   return !!assistance && assistance.version === SEMANTIC_VERSION && assistance.sourceText === text && assistance.businessDate === date && assistance.defaultPlayer === (player||'');
 }
@@ -67,8 +76,8 @@ export function semanticReviewReasons({issues=[],structural=[],bets=[]}) {
 }
 export const needsSemanticReview = input => semanticReviewReasons(input).length>0;
 export function resolvedTotalDeclaration({bets,issues,metadata},line){
-  return !bets.some(b=>b.line<=line&&b.endLine>=line)&&!issues.some(i=>i.line<=line&&i.endLine>=line)
-    &&metadata.some(m=>m.line===line&&m.kind==='金额声明'&&(m.closingMarket?.length||m.subtotalRule==='R22')&&m.fromLine&&m.expectedCents===m.actualCents
+  return !issues.some(i=>i.line<=line&&i.endLine>=line)
+    &&metadata.some(m=>m.line===line&&m.kind==='金额声明'&&(m.inlineEquation||!bets.some(b=>b.line<=line&&b.endLine>=line))&&(m.inlineEquation||m.closingMarket?.length||m.subtotalRule==='R22')&&m.fromLine&&m.expectedCents===m.actualCents
       &&!issues.some(i=>i.line<=m.toLine&&i.endLine>=m.fromLine)&&bets.filter(b=>b.line>=m.fromLine&&b.endLine<=m.toLine).every(b=>b.status==='parsed'));
 }
 // Confirmations are versioned alongside the untouched original text. A changed

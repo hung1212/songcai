@@ -1,5 +1,6 @@
 import { ANIMALS } from './rules.js';
 import { summarize } from './parser.js';
+import { ledgerOwnedDocument } from './ledger-owner.js';
 
 // Repeated selections and each market represent separate paid shares.
 export function flatZodiacAmount(bet, { market = '', animal = '' } = {}) {
@@ -12,7 +13,7 @@ export function flatZodiacAmount(bet, { market = '', animal = '' } = {}) {
 
 // A live, space-scoped projection of parsed ledgers; no copied betting rows.
 export function flatZodiacCollection(documents, { date = '', market = '' } = {}) {
-  const scoped = documents.filter(doc => !date || doc.rule?.date === date);
+  const scoped = documents.filter(doc => !date || doc.rule?.date === date).map(ledgerOwnedDocument);
   const flat = scoped.map(doc => ({ ...doc, bets: doc.bets.filter(bet => bet.playType === 'flat-zodiac' && bet.status === 'parsed') }));
   const summary = summarize(flat, { market });
   const bets = flat.flatMap(doc => doc.bets).filter(bet => !market || bet.markets.includes(market));

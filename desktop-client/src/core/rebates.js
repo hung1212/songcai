@@ -1,4 +1,5 @@
 import {REBATE_PLAY_IDS,rebatePlayKey,rebatePlayName} from './rebate-plays.js';
+import {ledgerOwner} from './ledger-owner.js';
 // Rates are integer cents returned per 10,000 yuan of effective turnover.
 // 100 yuan / 10,000 yuan = 1%. All monetary arithmetic uses integer fractions.
 const BASE = 1_000_000n;
@@ -31,9 +32,10 @@ export function rebateInput(text) {
 export const rebatePercent = cents => (cents / 10000).toFixed(4).replace(/0+$/,'').replace(/\.$/,'') + '%';
 export function settlementPlayers(documents,{includeEmpty=false}={}) {
   const players=new Map();
-  for (const doc of documents) for (const bet of (doc.bets?.length?doc.bets:includeEmpty?[{playerId:doc.defaultPlayer?.trim()||`document:${doc.id}:player`,player:doc.defaultPlayer?.trim()||`本单玩家（${doc.name}）`}]:[])) {
-    const id=bet.playerId||bet.player;
-    if (!players.has(id)) players.set(id,{id,name:bet.player,documents:[]});
+  for (const doc of documents) {
+    if(!includeEmpty&&!doc.bets?.length)continue;
+    const {id,name}=ledgerOwner(doc);
+    if (!players.has(id)) players.set(id,{id,name,documents:[]});
     const person=players.get(id);
     if (!person.documents.includes(doc.name)) person.documents.push(doc.name);
   }

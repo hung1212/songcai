@@ -8,6 +8,7 @@ import {playerOddsDraft,mergePlayerOddsEdits} from '../core/player-odds.js';
 import {rebateInput,rebatePercent,settlementPlayers} from '../core/rebates.js';
 import {rebateDraft,mergeRebateEdits} from '../core/rebate-edits.js';
 import {REBATE_PLAYS} from '../core/rebate-plays.js';
+import {ledgerOwnerSettings} from '../core/ledger-owner.js';
 const props=defineProps({documents:{type:Array,default:()=>[]},active:Boolean});
 const emit=defineEmits(['saved']);
 const space=useSpace(),api=space.api?.settlement||browserSettlement(()=>[],space.id);
@@ -54,6 +55,7 @@ function addPlayers(){
   if(!selected.value)selectedId.value=players.value[0]?.id||'';
 }
 function hydrate(loaded){
+  loaded=ledgerOwnerSettings(props.documents,loaded);
   settings.value=loaded;
   values.value=Object.assign(Object.create(null),Object.fromEntries(Object.entries(loaded.rebates||{}).map(([id,r])=>[id,rebateDraft(r)])));
   oddsValues.value=Object.assign(Object.create(null),Object.fromEntries(Object.entries(loaded.playerOdds||{}).map(([id,r])=>[id,playerOddsDraft(r)])));
@@ -71,7 +73,7 @@ async function save(){
   if(!dirty.value)return;
   busy.value=true;error.value='';message.value='';
   try{
-    const latest=(await api.load({date:today()})).settings;
+    const latest=ledgerOwnerSettings(props.documents,(await api.load({date:today()})).settings);
     const rebates=mergeRebateEdits(settings.value.rebates,latest.rebates,JSON.parse(baseline.value),JSON.parse(JSON.stringify(values.value)),Object.fromEntries(players.value.map(p=>[p.id,p.name])));
     const playerOdds=mergePlayerOddsEdits(settings.value.playerOdds,latest.playerOdds,JSON.parse(oddsBaseline.value),JSON.parse(JSON.stringify(oddsValues.value)),playerNames());
     hydrate(await api.settings({...latest,rebates,playerOdds}));
@@ -85,16 +87,16 @@ defineExpose({flush:save});
 </script>
 <template>
   <div class="page-body rebate-page" aria-label="玩家退水管理">
-    <section class="page-heading rebate-page-heading"><div><h1>玩家退水与赔率</h1><p>选择玩家，分别设置退水和各市场赔率；未单独设置的赔率跟随市场默认。</p></div><div class="rebate-page-actions"><span>{{dirty?'有未保存修改':'已保存到本地'}}</span><button class="button" :disabled="busy" @click="dirty?reloadPrompt=true:load()">重新载入</button><button class="button primary rebate-save" :disabled="busy||!dirty" @click="save().catch(()=>{})">{{busy?'处理中…':'保存所有修改'}}</button></div></section>
+    <section class="page-heading rebate-page-heading"><div><h1>玩家退水与赔率</h1><p>一份账单对应一个玩家，退水和独立赔率均按账单名生效，正文署名不参与归属；未设置的赔率跟随市场默认。</p></div><div class="rebate-page-actions"><span>{{dirty?'有未保存修改':'已保存到本地'}}</span><button class="button" :disabled="busy" @click="dirty?reloadPrompt=true:load()">重新载入</button><button class="button primary rebate-save" :disabled="busy||!dirty" @click="save().catch(()=>{})">{{busy?'处理中…':'保存所有修改'}}</button></div></section>
     <div v-if="reloadPrompt" class="rebate-reload-prompt">重新载入会放弃尚未保存的退水与赔率修改。<button class="text-button" @click="reloadPrompt=false">保留修改</button><button class="button" @click="load">放弃修改并载入</button></div>
     <p v-if="error" class="rebate-error" role="alert">{{error}}</p><p v-if="message" class="rebate-success" role="status">{{message}}</p>
     <div class="rebate-layout">
-      <aside class="panel rebate-people"><div class="rebate-people-heading"><strong>全部玩家 <small>{{players.length}}</small></strong><span>{{configured}}位已设置</span></div><input v-model="search" type="search" aria-label="搜索退水玩家" placeholder="搜索玩家或账目" />
-        <div class="rebate-player-list"><button v-for="p in filtered" :key="p.id" :data-player-id="p.id" :aria-label="'设置'+p.name+'退水'" :aria-pressed="selectedId===p.id" :class="['rebate-player',{selected:selectedId===p.id}]" @click="selectedId=p.id"><span><strong>{{p.name}}</strong><small>{{p.documents.join('、')||'已保存的退水设置'}}</small></span><span class="rebate-player-rate">{{percentage(values[p.id]?.default)}}<small>{{overrideCount(p.id)}}项退水 · {{oddsCount(p.id)}}项赔率</small></span></button></div>
+      <aside class="panel rebate-people"><div class="rebate-people-heading"><strong>账单玩家 <small>{{players.length}}</small></strong><span>{{configured}}位已设置</span></div><input v-model="search" type="search" aria-label="搜索退水玩家" placeholder="搜索账单名" />
+        <div class="rebate-player-list"><button v-for="p in filtered" :key="p.id" :data-player-id="p.id" :aria-label="'设置'+p.name+'退水'" :aria-pressed="selectedId===p.id" :class="['rebate-player',{selected:selectedId===p.id}]" @click="selectedId=p.id"><span><strong>{{p.name}}</strong><small>{{p.documents.join('、')||'已保存设置 · 当前无同名账单'}}</small></span><span class="rebate-player-rate">{{percentage(values[p.id]?.default)}}<small>{{overrideCount(p.id)}}项退水 · {{oddsCount(p.id)}}项赔率</small></span></button></div>
         <p v-if="!filtered.length" class="rebate-empty">{{players.length?'没有匹配的玩家':'创建账目或从收件箱入账后，即可设置玩家退水。'}}</p>
       </aside>
       <section v-if="selected&&draft" class="panel rebate-editor" :aria-label="selected.name+'的退水设置'">
-        <header><div><h2>{{selected.name}}</h2><p>{{selected.documents.join('、')||'本空间已保存玩家'}}</p></div><small>{{overrideCount(selected.id)}}项玩法单独设置</small></header>
+        <header><div><h2>{{selected.name}}</h2><p>{{selected.documents.join('、')||'当前无同名账单，设置暂不应用于现有账单'}}</p></div><small>{{overrideCount(selected.id)}}项玩法单独设置</small></header>
         <div class="player-setting-tabs" role="tablist" aria-label="玩家设置类型"><button role="tab" :aria-selected="section==='rebates'" class="button" @click="section='rebates'">玩家退水</button><button role="tab" :aria-selected="section==='odds'" class="button" @click="section='odds'">玩家赔率</button></div>
         <template v-if="section==='rebates'">
         <div class="rebate-default"><div><strong>玩家默认退水</strong><small>未单独设置的玩法使用这个值</small></div><label>每10,000元流水退 <input v-model="draft.default" :aria-label="selected.name+'每万元退水'" inputmode="decimal" placeholder="0 · 不退水" :disabled="busy||!settings" /> 元</label><b>{{percentage(draft.default)}}</b></div>
@@ -115,7 +117,7 @@ defineExpose({flush:save});
       </section>
       <section v-else class="panel rebate-editor rebate-empty">{{busy?'正在载入玩家退水…':'从左侧选择玩家，即可设置退水和赔率。'}}</section>
     </div>
-    <p class="rebate-page-note">退水按有效流水计算，扣除退本金，待处理及待结算暂不计入；计入每天结算、账目应付、净输赢和结算截图。各空间独立保存，清空投注保留设置，已保存历史结算保留原金额。</p>
+    <p class="rebate-page-note">同名账单使用同一套设置；修改账单名后使用新名称对应的设置。退水按整单有效流水计算，扣除退本金，待处理及待结算暂不计入；计入每天结算、账目应付、净输赢和结算截图。各空间独立保存，清空投注保留设置，已保存历史结算保留原金额。</p>
   </div>
 </template>
 <style scoped>

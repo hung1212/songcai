@@ -28,12 +28,12 @@ test('取消和改价指令不当噪声忽略，相关段落暂不计费',()=>{
   const p=parse(text);assert(p.issues.some(i=>i.code==='BET_INSTRUCTION'),text);assert.equal(summarize([p]).totalCents,0,text);
  }
 });
-test('未署名玩家按账目隔离，显式玩家保留身份，筛选和赔付不混人',()=>{
+test('解析保留署名与筛选身份，赔付按同名账单归为一个玩家',()=>{
  const a=parse('旧1各20\n2各10','a',{name:'同名资料'}),b=parse('1各30','b',{name:'同名资料'});
  const s=summarize([a,b]);assert.equal(s.players.length,2);assert.equal(summarize([a,b],{player:a.bets[0].playerId}).totalCents,3000);
  const o=defaultOdds();o.confirmed=true;const draw={date,issue:'2026278',numbers:[2,3,4,5,6,7,1]};
  const settled=settleDocuments([a,b],{新:{...draw,market:'新'},旧:{...draw,market:'旧'}},{新:o,旧:o},date);
- assert(settled.complete);assert.equal(settled.players.length,2);assert.equal(settled.payoutCents,235000);
+ assert(settled.complete);assert.equal(settled.players.length,1);assert.equal(settled.payoutCents,235000);
  const named=parse('小明：旧1各20\n张三：2各10');assert.deepEqual(named.bets.map(b=>[b.player,b.markets]),[['小明',['旧']],['张三',['新']]]);
 });
 test('收件箱不填玩家也可按本单玩家核对入账，明确绑定冲突仍提示',()=>{

@@ -14,12 +14,12 @@ import {browserSettlement} from '../src/settlement-preview.js';
 const date='2026-10-05',draw={market:'新',date,issue:'2026278',numbers:[1,2,3,4,5,6,49],sourceId:'manual'};
 const odds=Object.fromEntries(['新','旧','港'].map(m=>{const o=core.defaultOdds();o.confirmed=true;o.refund49.attribute=true;return [m,o];}));
 const allDraws=Object.fromEntries(['新','旧','港'].map(m=>[m,{...draw,market:m}]));
-const doc=(text,id='a')=>parseDocument(text,{id,name:'账目'+id,businessDate:date});
+const doc=(text,id='a')=>parseDocument(text,{id,name:'小明',businessDate:date});
 const rate=(id='小明',cents=10000)=>({[id]:{perTenThousandCents:cents}});
 const calculate=(documents,rebates,selected=allDraws)=>core.settleDocuments(documents,selected,odds,date,{rebates});
 
 test('每万元退100元按1%计算，未设置默认0，赢输投注都计流水',()=>{
-  const docs=[doc('小明：49各10000\n20各5000\n张三：20各1000')];
+  const docs=[doc('小明：49各10000\n20各5000'),{...doc('张三：20各1000','b'),name:'张三'}];
   const r=calculate(docs,rate());assert.equal(r.rebateCents,15000);assert.equal(r.payableCents,47015000);assert.equal(r.payoutCents,47000000);
   const p=r.players[0];assert.equal(p.turnoverCents,1500000);assert.equal(p.perTenThousandCents,10000);assert.equal(p.netCents,45515000);
   assert.equal(r.players[1].rebateCents,0);assert.equal(r.players[1].netCents,-100000);
@@ -29,10 +29,10 @@ test('待处理、缺开奖、退款及其他日期不计入有效流水，未�
   const docs=[doc('小明：新20各100\n大100\n旧20各200\n特码99各100'),{...doc('小明：20各10000','other'),rule:{date:'2026-10-04'}}];
   const r=calculate(docs,rate(),{新:draw});assert.equal(r.turnoverCents,10000);assert.equal(r.rebateCents,100);assert.equal(r.refundCents,10000);assert.equal(r.payableCents,10100);assert.equal(r.complete,false);assert.equal(r.players[0].netCents,null);assert.equal(settlementBalance(r).netCents,null);
 });
-test('原文无署名按账目ID分开；同名标题、改标题不误套用其他账目退水',()=>{
+test('原文无署名仍按标题匹配退水，同名共用配置，改名后按新标题',()=>{
   const a=doc('20各100','a'),b={...doc('20各100','b'),name:a.name};
-  const r=calculate([a,b],rate('document:a:player'));assert.deepEqual(r.players.map(p=>p.rebateCents),[100,0]);
-  a.name='重命名';assert.equal(calculate([a],rate('document:a:player')).rebateCents,100);
+  const r=calculate([a,b],rate(a.name));assert.deepEqual(r.players.map(p=>p.rebateCents),[200]);
+  a.name='重命名';assert.equal(calculate([a],rate('小明')).rebateCents,0);
 });
 test('按账目玩家汇总后舍入到分，多市场分配守恒，每日总额等于单账目结算单之和',()=>{
   const docs=[doc('小明：三边20各0.17\n20各0.17','a'),doc('小明：三边20各0.17','b')];
@@ -47,7 +47,7 @@ test('退水输入精度、负数、上限、危险属性名称及安全整数�
   for(const value of ['-1','1.001','10001','NaN','Infinity','1e2'])assert.throws(()=>rebateInput(value));
   for(const value of [null,[],{p:{perTenThousandCents:1.5}},{p:{perTenThousandCents:1000001}}])assert.throws(()=>validateRebates(value));
   assert.deepEqual(validateRebates({p:{perTenThousandCents:0}}),{});
-  assert.equal(calculate([doc('constructor：20各100')],rate('constructor')).rebateCents,100);
+  assert.equal(calculate([{...doc('constructor：20各100'),name:'constructor'}],rate('constructor')).rebateCents,100);
   const large=doc('小明：20各100');large.bets[0].perMarketCents=Number.MAX_SAFE_INTEGER;
   assert.doesNotThrow(()=>calculate([large],rate()));
 });

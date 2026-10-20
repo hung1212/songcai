@@ -16,7 +16,7 @@ const parse=(text=source,options={})=>parseDocument(text,{...doc(text),...option
 const valid=(text=source,options={})=>{const p=parse(text,options);assert.deepEqual(p.issues,[],text);return p;};
 const odds=Object.fromEntries(['新','旧','港'].map(m=>[m,defaultOdds()]));
 const draws=Object.fromEntries(['新','旧','港'].map(m=>[m,{market:m,date,issue:m==='港'?'2026106':'2026289',numbers:[12,29,19,28,47,34,38]}]));
-const rebates={'document:issue-title:player':{perTenThousandCents:30000,playRates:{'flat-zodiac':10000,'linked-zodiac-2':10000}}};
+const rebates={[doc().name]:{perTenThousandCents:30000,playRates:{'flat-zodiac':10000,'linked-zodiac-2':10000}}};
 const settle=(p,rate=rebates)=>settleDocuments([p],draws,odds,date,{rebates:rate});
 
 test('截图中的澳289期不新增玩家，全部1020元仍归原玩家及其退水设置',()=>{
@@ -74,7 +74,7 @@ test('市场期号只校验本玩家当前消息的后续对应市场，最近�
 
 test('未设置退水或显式零仍为不退水，小金额按比例到分而无万元门槛',()=>{
   assert.equal(settle(valid(),{}).rebateCents,0);
-  const config={'document:issue-title:player':{perTenThousandCents:30000,playRates:{'flat-zodiac':0,'linked-zodiac-2':0}}};
+  const config={[doc().name]:{perTenThousandCents:30000,playRates:{'flat-zodiac':0,'linked-zodiac-2':0}}};
   assert.equal(settle(valid(),config).rebateCents,2460);
   const tiny=valid('澳289期：\n平肖虎1\n二连肖虎蛇每组1');
   const r=settle(tiny);assert.equal(r.rebateCents,2);assert.deepEqual(r.players[0].rebateBreakdown.map(b=>b.rebateCents),[1,1]);

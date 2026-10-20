@@ -4,13 +4,17 @@ import {parseDocument} from '../src/core/parser.js';
 import {defaultOdds,settleDocuments} from '../src/core/settlement.js';
 import {ledgerReceipt,receiptPages,receiptSvg,receiptRebateFormula} from '../src/core/ledger-receipt.js';
 const date='2026-10-05';
-function fixture(text,rebates){
-  const document={id:'receipt-rebates',name:'仅用于测试的账目',businessDate:date},parsed=parseDocument(text,document);
+function fixture(text,rebates,legacy=false){
+  const document={id:'receipt-rebates',name:'小明',businessDate:date},parsed=parseDocument(text,document);
   assert.deepEqual(parsed.issues,[]);
   const draws=Object.fromEntries(['新','旧','港'].map(m=>[m,{market:m,date,issue:'2026278',numbers:[1,2,3,4,5,6,49]}]));
   const odds=Object.fromEntries(['新','旧','港'].map(m=>[m,{...defaultOdds(),confirmed:true}]));
   const inputs={kind:'current',selection:document.id,documents:[parsed],date,draws,settings:{odds,rebates},verification:Object.fromEntries(['新','旧','港'].map(m=>[m,{confirmed:true}]))};
-  return {document,inputs,result:settleDocuments([parsed],draws,odds,date,{rebates})};
+  // Synthesize an old multi-player snapshot only for historical compatibility.
+  const documents=legacy?parsed.bets.map(b=>({...parsed,name:b.player,bets:[b]})):[parsed];
+  const result=settleDocuments(documents,draws,odds,date,{rebates});
+  if(legacy)result.version='songcai-settlement-2';
+  return {document,inputs,result};
 }
 const rendered=card=>receiptSvg(receiptPages(card)[0]).svg;
 
@@ -24,11 +28,11 @@ test('结算单分开列出特码、平码、平特肖退水，跨市场汇总�
   assert(svg.includes('退水合计'));assert(!svg.includes('小明'));assert(!svg.includes('仅用于测试的账目'));
 });
 
-test('同玩法跨玩家按实际退水合并，多档费率不伪造统一费率；不退水的流水不混入',()=>{
+test('正文多个玩家统一按账单名退水，全部流水使用账单的费率',()=>{
   const card=ledgerReceipt(fixture('小明：49各100\n张三：49各200\n李四：49各900',{小明:{perTenThousandCents:10000},张三:{perTenThousandCents:20000}}));
-  assert.deepEqual(card.rebateRows,[{key:'special-number',name:'特码',turnoverCents:30000,rebateCents:500,rate:'多档退水率'}]);
-  assert.equal(card.rebateCents,500);assert.equal(card.rebateTurnoverCents,30000);assert.equal(card.stakeCents,120000);
-  assert(rendered(card).includes('有效流水 300 · 多档退水率'));
+  assert.deepEqual(card.rebateRows,[{key:'special-number',name:'特码',turnoverCents:120000,rebateCents:1200,rate:'1%'}]);
+  assert.equal(card.rebateCents,1200);assert.equal(card.rebateTurnoverCents,120000);assert.equal(card.stakeCents,120000);
+  assert(rendered(card).includes('有效流水 1,200 · 1%'));
 });
 
 test('分位舍入使用结算分摊金额，不重新乘费率；舍入为0仍保留已退水玩法',()=>{
@@ -50,7 +54,7 @@ test('未设置或关闭的玩法不展示退水，只有已结算且参与退�
 });
 
 test('历史缺玩法明细只列未分类退水，不按当前配置补算；新旧明细合计守恒',()=>{
-  const data=fixture('小明：49各100\n张三：平码01各200',{小明:{perTenThousandCents:10000},张三:{perTenThousandCents:20000}});
+  const data=fixture('小明：49各100\n张三：平码01各200',{小明:{perTenThousandCents:10000},张三:{perTenThousandCents:20000}},true);
   delete data.result.players.find(p=>p.id==='小明').rebateBreakdown;
   data.inputs.settings.rebates.小明.perTenThousandCents=90000;
   const card=ledgerReceipt({...data,history:true});
@@ -63,7 +67,7 @@ test('历史缺玩法明细只列未分类退水，不按当前配置补算；�
 });
 
 test('玩法退水明细损坏时拒绝生成误导截图，即使玩家间误差刚好抵消',()=>{
-  const data=fixture('小明：49各100\n张三：49各100',{小明:{perTenThousandCents:10000},张三:{perTenThousandCents:10000}});
+  const data=fixture('小明：49各100\n张三：49各100',{小明:{perTenThousandCents:10000},张三:{perTenThousandCents:10000}},true);
   data.result.players[0].rebateBreakdown[0].rebateCents++;
   data.result.players[1].rebateBreakdown[0].rebateCents--;
   assert.throws(()=>ledgerReceipt(data),/玩法退水明细与退水合计不一致/);

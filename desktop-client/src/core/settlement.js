@@ -2,16 +2,17 @@ import { MARKETS, WAVES, ruleForDate } from './rules.js';
 import { validateDraw } from './draws.js';
 import { withRebates } from './rebates.js';
 import {rebatePlayKey} from './rebate-plays.js';
+import {ledgerOwnedDocument,ledgerOwnerSettings} from './ledger-owner.js';
 export { validateRebates } from './rebates.js';
 
-export const SETTLEMENT_VERSION = 'songcai-settlement-2';
+export const SETTLEMENT_VERSION = 'songcai-settlement-3';
 import {validateOdds} from './odds.js';
 import {effectivePlayerOdds,validatePlayerOdds} from './player-odds.js';
 export {RATE_ROWS,defaultOdds,validateOdds} from './odds.js';
 export {validatePlayerOdds} from './player-odds.js';
 function choose(n,k) { if (k<0||n<k) return 0n; let result=1n; for(let i=1;i<=k;i++) result=result*BigInt(n-i+1)/BigInt(i); return result; }
 function asSafe(value) { if(value>BigInt(Number.MAX_SAFE_INTEGER)||value<BigInt(-Number.MAX_SAFE_INTEGER)) throw new Error('赔付金额超出精确计算范围'); return Number(value); }
-function pay(cents, rate, includePrincipal) {
+export function payoutForStake(cents, rate, includePrincipal) {
   if(!rate) throw new Error('中奖档位未配置赔率');
   const [whole,fraction='']=rate.split('.'); const scale=10n**BigInt(fraction.length); let numerator=BigInt(whole)*scale+BigInt(fraction||'0');
   if(!includePrincipal) numerator+=scale;
@@ -67,19 +68,21 @@ export function settleBet(bet, drawInput, rawOdds, now = Date.now(), options = {
       }
     }
     let total=0n,wins=0n; const breakdown=[];
-    for(const tier of tiers.values()) {const rate=odds.rates[tier.key]?.[tier.specialRate?'specialRate':'rate']; const unit=pay(bet.unitCents,rate,odds.includePrincipal), payout=unit*tier.count; total+=payout;wins+=tier.count;
+    for(const tier of tiers.values()) {const rate=odds.rates[tier.key]?.[tier.specialRate?'specialRate':'rate']; const unit=payoutForStake(bet.unitCents,rate,odds.includePrincipal), payout=unit*tier.count; total+=payout;wins+=tier.count;
       breakdown.push({key:tier.key,rate,yearAnimal:tier.specialRate?yearAnimal:'',count:asSafe(tier.count),unitPayoutCents:asSafe(unit),payoutCents:asSafe(payout)});}
     return {status:wins?'won':'lost',payoutCents:asSafe(total),refundCents:0,winCount:asSafe(wins),winningStakeCents:asSafe(wins*BigInt(bet.unitCents)),tiers:breakdown,note:wins?'逐份按赔率计算，金额四舍五入到分':'未中奖'};
   } catch(error) {return {status:'pending',payoutCents:null,refundCents:0,winCount:null,tiers:[],note:error.message};}
 }
 export function settleDocuments(documents, draws, settings, date, options = {}) {
+  options=ledgerOwnerSettings(documents,options);
   ruleForDate(date); const playerOdds=validatePlayerOdds(options.playerOdds||{}); const entries=[],issues=[],players=new Map(); let stake=0n,payout=0n,refund=0n,pending=0;
-  for(const doc of documents) {
+  for(const source of documents) {
+    const doc=ledgerOwnedDocument(source);
     if(doc.rule?.date!==date)continue;
     for(const issue of doc.issues||[]) if(issue.severity!=='warning') issues.push({...issue,document:doc.name});
     const periodDeclarations=(doc.metadata||[]).filter(m=>m.kind==='期号');
     for(const bet of doc.bets||[]) for(const market of bet.markets) {
-      const scoped=periodDeclarations.filter(m=>m.markets?.includes(market)&&m.playerId===bet.playerId&&m.messageIndex===bet.messageIndex&&m.line<=bet.line).at(-1);
+      const scoped=periodDeclarations.filter(m=>m.markets?.includes(market)&&m.playerId===bet.sourcePlayerId&&m.messageIndex===bet.messageIndex&&m.line<=bet.line).at(-1);
       const periodHints=periodDeclarations.filter(m=>!m.markets).concat(scoped?[scoped]:[]).map(m=>m.text.replace(/\D/g,''));
       let result; const draw=draws[market];
       if(!draw)result={status:'pending',payoutCents:null,note:'未选择该市场、该日期的开奖'};

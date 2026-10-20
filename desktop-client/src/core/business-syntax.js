@@ -2,7 +2,7 @@ import { ANIMALS, CN, MARKETS } from './rules.js';
 import {dottedAmounts,zodiacNumberAmounts,packageAmounts,perZodiacPackages} from './text-format.js';
 import { CATEGORY_ALIASES } from './classifications.js';
 
-export const PARSER_VERSION = 'parser-20261018-1';
+export const PARSER_VERSION = 'parser-20261020-1';
 export const COUNT_PATTERN = '(?:十[一二]?|[一二三四五六七八九两俩]|1[0-2]|[1-9])';
 const aliases = [];
 const add = (phrase, types, size, basis, canonical) => aliases.push({ phrase, types, size, basis, ...(canonical ? {canonical} : {}) });
@@ -15,6 +15,9 @@ for (let n = 1; n <= 12; n++) {
   for (const name of names) {
     add(`${name}肖中特`, ['special-zodiac-any'], n, '整项');
     if (n > 1) {
+      // Compact compound-play titles must retain the current player, even
+      // before a colon. Canonicalize before the parser consumes the play.
+      for (const end of ['肖', '连肖']) add(`复${name}${end}`, ['linked-zodiac'], n, '每组', `${name}连肖`);
       for (const prefix of ['', '平特']) for (const end of ['肖全中', '连肖全中']) add(prefix+name+end,['linked-zodiac'],n,'每组');
       for (const end of ['连肖', '肖连']) { add(name + end, ['linked-zodiac'], n, '每组'); add('平特' + name + end, ['linked-zodiac'], n, '每组'); }
       add(`${name}连码`, [`linked-number-${n}-${n}`], n, '每组');
@@ -93,7 +96,7 @@ export function canonicalPlayText(raw) {
 
 // Consume qualified names before the bare 澳／奥 aliases, so 旧澳 and
 // 澳门旧 remain one old-market declaration rather than adding a new market.
-export const MARKET_PATTERN_SOURCE = /三边|3边|两边|二边|2边|(?:澳|奥)(?:门)?[ \t]*(?:新旧|新老|旧新|老新|旧|老|新)|(?:新旧|新老|旧新|老新)(?:[ \t]*(?:澳门|奥门|澳|奥))?|香港|新(?:[ \t]*(?:澳门|奥门|噢门|澳奥|澳|奥|门|凹))?|(?:老|旧)(?:[ \t]*(?:澳门|奥门|澳奥|澳|奥|门))?|港|香|澳门|奥门|澳|奥/.source;
+export const MARKET_PATTERN_SOURCE = /三边|3边|两边|二边|2边|(?:澳|奥)(?:门)?[ \t]*(?:新旧|新老|旧新|老新|旧|老|新)|(?:新旧|新老|旧新|老新)(?:[ \t]*(?:澳门|奥门|澳|奥))?|香港|新(?:[ \t]*(?:澳门|奥门|噢门|澳奥|澳|奥|门|凹))?|(?:老|旧)(?:[ \t]*(?:澳门|奥门|澳奥|澳|奥|门))?|港|香|澳门|奥门|澳|奥|门/.source;
 const marketPattern = new RegExp(MARKET_PATTERN_SOURCE, 'g');
 // Only an unlabelled three-digit prefix before a market is an issue remark.
 // Do not discard 01–49, numbers inside selections, or arbitrary long numbers.
@@ -124,7 +127,7 @@ export function marketInfo(input) {
     token=token.replace(/[ \t]/g,'');
     if(/三边|3边/.test(token))MARKETS.forEach(m=>found.add(m));
     else if(/两边|二边|2边|新旧|新老|旧新|老新/.test(token)){found.add('新');found.add('旧');}
-    else if(/旧|老/.test(token))found.add('旧');else if(/新|澳|奥/.test(token))found.add('新');else found.add('港');
+    else if(/旧|老/.test(token))found.add('旧');else if(/新|澳|奥|门/.test(token))found.add('新');else found.add('港');
     return ' ';
   }).replace(/澳门|奥门|澳彩|奥彩|澳|奥/g,' ');
   return {text,markets:MARKETS.filter(m=>found.has(m))};

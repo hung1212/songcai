@@ -14,7 +14,7 @@ import {ledgerReceipt,receiptPages,receiptSvg} from '../src/core/ledger-receipt.
 import {SettlementStore,hash} from '../electron/settlement-store.cjs';
 import installSettlement from '../electron/settlement-service.cjs';
 import {browserSettlement} from '../src/settlement-preview.js';
-const date='2026-10-05',parse=(text,id='a')=>parseDocument(text,{id,name:'账目'+id,businessDate:date});
+const date='2026-10-05',parse=(text,id='a')=>parseDocument(text,{id,name:'小明',businessDate:date});
 const draw={market:'新',date,issue:'2026278',numbers:[1,2,3,4,5,6,49],sourceId:'manual'};
 const odds=Object.fromEntries(['新','旧','港'].map(m=>[m,{...core.defaultOdds(),confirmed:true}]));
 const draws=Object.fromEntries(['新','旧','港'].map(m=>[m,{...draw,market:m}]));
@@ -22,7 +22,7 @@ const calculate=(docs,rebates,d=draws)=>core.settleDocuments(docs,d,odds,date,{r
 const config={小明:{perTenThousandCents:10000,playRates:{'special-number':5000,'flat-zodiac':20000,'linked-number-3-3':0}}};
 
 test('同玩家各玩法使用独立退水，未覆盖跟随默认，覆盖0不退水；其他玩家不受影响',()=>{
-  const docs=[parse('小明：20各10000\n平特肖龙各5000\n二中二1 2各2000\n三中三1 2 3各3000\n张三：20各10000')];
+  const docs=[parse('小明：20各10000\n平特肖龙各5000\n二中二1 2各2000\n三中三1 2 3各3000'),{...parse('张三：20各10000','b'),name:'张三'}];
   assert.deepEqual(docs[0].issues,[]);
   const r=calculate(docs,config),p=r.players.find(p=>p.id==='小明');
   assert.equal(p.rebateCents,17000);assert.equal(p.turnoverCents,2000000);assert.equal(r.players.find(p=>p.id==='张三').rebateCents,0);
@@ -77,13 +77,13 @@ test('校验玩法键、金额精度和边界，显式0不能被当作未设置�
   assert.equal(validateRebates({p:{perTenThousandCents:0,playRates:{'flat-zodiac':1000000}}}).p.playRates['flat-zodiac'],1000000);
 });
 
-test('玩家名册包括空账目绑定玩家、未署名固定身份；清空与重命名不串玩家',()=>{
-  const empty=[parse('','a'),{...parse('','b'),defaultPlayer:'小明'}];
-  assert.deepEqual(settlementPlayers(empty,{includeEmpty:true}).map(p=>p.id),['document:a:player','小明']);
+test('玩家名册包括空账目标题，忽略默认署名；同名账目沿用同一配置',()=>{
+  const empty=[{...parse('','a'),name:'甲'},{...parse('','b'),name:'乙',defaultPlayer:'小明'}];
+  assert.deepEqual(settlementPlayers(empty,{includeEmpty:true}).map(p=>p.id),['甲','乙']);
   assert.deepEqual(settlementPlayers(empty),[]);
-  const config={'document:a:player':{perTenThousandCents:0,playRates:{'flat-zodiac':10000}}};
+  const config={小明:{perTenThousandCents:0,playRates:{'flat-zodiac':10000}}};
   const a=parse('平特肖鼠100','a'),b={...parse('平特肖鼠100','b'),name:a.name};
-  assert.deepEqual(calculate([a,b],config).players.map(p=>p.rebateCents),[100,0]);
+  assert.deepEqual(calculate([a,b],config).players.map(p=>p.rebateCents),[200]);
 });
 
 test('只合并编辑过的字段，保留其他玩家与玩法改动，冲突拒绝而不覆盖',()=>{
@@ -103,7 +103,7 @@ test('清空覆盖恢复默认，填0关闭玩法退水，危险名称不污染�
   for(const id of ['__proto__','constructor','toString']) {
     const before=Object.fromEntries([[id,rebateDraft()]]),after=Object.fromEntries([[id,{default:'0',plays:{'special-number':'100'}}]]);
     const r=mergeRebateEdits({}, {},before,after,Object.fromEntries([[id,id]]));assert.equal(r[id].playRates['special-number'],10000);
-    assert.equal(calculate([parse(`${id}：20各100`)],r).rebateCents,100);
+    assert.equal(calculate([{...parse(`${id}：20各100`),name:id}],r).rebateCents,100);
   }
   assert.equal({}.playRates,undefined);
 });
@@ -128,7 +128,7 @@ test('浏览器玩法退水按空间保存，退水变更令旧预览失效',asy
 
 test('统一退水名册包含不同日期的已入账微信玩家，沿用现有身份',async t=>{
   const dir=fs.mkdtempSync(path.join(os.tmpdir(),'songcai-rebate-players-')),handlers=new Map(),sender={};
-  const service=await installSettlement({electron:{app:{getPath:()=>dir},ipcMain:{handle:(n,f)=>handlers.set(n,f)},net:{fetch:()=>{throw new Error('unexpected network');}}},window:()=>({webContents:sender}),ledger:{read:()=>({documents:[]})},inbox:{settlementDocuments:day=>{assert.equal(day,'');return [parse('微信玩家：20各100','inbox-a'),parse('另一天玩家：20各100','inbox-b')];}}});
+  const service=await installSettlement({electron:{app:{getPath:()=>dir},ipcMain:{handle:(n,f)=>handlers.set(n,f)},net:{fetch:()=>{throw new Error('unexpected network');}}},window:()=>({webContents:sender}),ledger:{read:()=>({documents:[]})},inbox:{settlementDocuments:day=>{assert.equal(day,'');return [{...parse('微信玩家：20各100','inbox-a'),name:'微信玩家'},{...parse('另一天玩家：20各100','inbox-b'),name:'另一天玩家'}];}}});
   t.after(()=>{service.close();fs.rmSync(dir,{recursive:true,force:true});});
   assert.deepEqual(handlers.get('settlement:players')({sender}).map(p=>p.id),['微信玩家','另一天玩家']);assert.throws(()=>handlers.get('settlement:players')({sender:{}}),/未知窗口/);
 });

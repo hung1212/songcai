@@ -78,7 +78,7 @@ test('仅赔跨侧两个正码，特码不计入，玩家二中二独立赔率�
   const won=settle([5,15,10,22,1,2,34]);assert.equal(won.winCount,4);assert.equal(won.winningStakeCents,4000);assert.equal(won.payoutCents,240000);
   for(const numbers of [[5,15,25,35,45,1,10],[10,22,34,46,1,2,5],[5,1,2,3,4,6,10]])assert.equal(settle(numbers).payoutCents,0);
   const draw=manualDraw({market:'新',date:'2026-10-18',issue:'2026291',numbers:[5,15,10,22,1,2,34],sourceName:'固定测试'});
-  const playerOdds={[b.playerId]:{name:b.player,markets:{新:{rates:{'linked-number-2-2':{rate:'70'}}}}}};
+  const playerOdds={[p.name]:{name:p.name,markets:{新:{rates:{'linked-number-2-2':{rate:'70'}}}}}};
   const result=settleDocuments([p],{新:draw},{新:odds},draw.date,{playerOdds});
   assert.equal(result.complete,true);assert.equal(result.payoutCents,280000);
   const overlap=valid('二中二0尾拖鸡各10').bets[0];

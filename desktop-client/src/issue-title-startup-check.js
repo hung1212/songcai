@@ -10,7 +10,7 @@ import {receiptPng,exportReceiptImage} from './receipt-image.js';
 export async function checkIssueTitleRebateUI(context){
   const text='100元包狗，\n21，200元\n\n100包猪\n100包鼠\n\n09、300元\n\n澳289期：\n平肖虎100#\n2有虎蛇50#\n\n奥特34.22.30.42各五米、\n平特一肖虎五十米';
   const entry={id:'issue-title-check',name:'期号退水测试',text,businessDate:'2026-10-16'},parsed=parseDocument(text,entry);
-  const odds={新:defaultOdds()},rebates={'document:issue-title-check:player':{perTenThousandCents:30000,playRates:{'flat-zodiac':10000,'linked-zodiac-2':10000}}};
+  const odds={新:defaultOdds()},rebates={[entry.name]:{perTenThousandCents:30000,playRates:{'flat-zodiac':10000,'linked-zodiac-2':10000}}};
   const draws={新:{market:'新',date:entry.businessDate,issue:'2026289',numbers:[12,29,19,28,47,34,38]}};
   const result=settleDocuments([parsed],draws,odds,entry.businessDate,{rebates});
   const inputs={kind:'current',selection:entry.id,documents:[parsed],date:entry.businessDate,draws,settings:{odds,rebates}};
