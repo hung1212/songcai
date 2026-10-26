@@ -20,8 +20,8 @@ test('本命生肖独立除以5，其他肖除以4，跨农历年及多市场仍
   assert.equal(summarize([valid('旧\n特包猪兔龙各十米一肖\n两边特包马羊各10米一肖')]).totalCents,7000);
   const c=valid('特包猪猪各10米一肖，01各20');assert.equal(c.bets.length,3);assert.equal(summarize([c]).totalCents,4000);
 });
-test('普通后置一肖仍为特肖，冲突／不均分不误计账',()=>{
-  assert.equal(valid('奥特虎猪兔各十米一肖').bets[0].playType,'special-zodiac');
+test('普通后置一肖为平特肖，冲突／不均分不误计账',()=>{
+  assert.equal(valid('奥特虎猪兔各十米一肖').bets[0].playType,'flat-zodiac');
   for(const text of ['特包猪兔龙各10.01米一肖','特肖包猪兔龙各十米一肖','平特包猪兔龙各十米一肖','特包猪兔龙各号十米一肖','特包猪兔龙各十米二肖','包龙各40']){
     const p=parseDocument(text,doc(text));assert(p.issues.length,text);assert.equal(summarize([p]).totalCents,0,text);
   }

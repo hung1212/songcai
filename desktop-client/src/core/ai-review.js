@@ -30,11 +30,20 @@ export function relocateReview(result,item) {
 
 export function reviewInput(doc,mode='doubt') {
   const parsed=parseDocument(doc.text,{...doc,assistance:undefined,parserReview:undefined}), lines=doc.text.split(/\r\n|\n|\r/),items=[];
+  const byLine=(rows,span=false)=>{
+    const index=new Map();
+    for(const row of rows)for(let line=row.line;line<=(span?row.endLine:row.line);line++){
+      if(!index.has(line))index.set(line,[]);index.get(line).push(row);
+    }
+    return index;
+  };
+  const betsAt=byLine(parsed.bets,true),issuesAt=byLine(parsed.issues,true),metadataAt=byLine(parsed.metadata);
+  const contextsAt=new Map(parsed.contexts.map(context=>[context.line,context]));
   for(const context of parsed.contexts) {
     const line=context.line,source=lines[line-1],body=context.body;
-    const bets=parsed.bets.filter(b=>b.line===line&&b.endLine===line),issues=parsed.issues.filter(i=>i.line<=line&&i.endLine>=line);
-    if(resolvedTotalDeclaration(parsed,line))continue;
-    const ignored=parsed.metadata.filter(m=>m.line===line&&m.kind==='无关文字').map(m=>m.text);
+    const spanBets=betsAt.get(line)||[],bets=spanBets.filter(b=>b.line===line&&b.endLine===line),issues=issuesAt.get(line)||[],metadata=metadataAt.get(line)||[];
+    if(metadata.some(m=>m.kind==='金额声明')&&resolvedTotalDeclaration(parsed,line))continue;
+    const ignored=metadata.filter(m=>m.kind==='无关文字').map(m=>m.text);
     const meaningful=/[0-9零〇一二三四五六七八九十百千万壹贰貳叁參肆伍陆陸柒捌玖拾佰仟廿卅]/.test(body);
     const structural=structuralConflicts(body,bets);
     const reviewReasons=semanticReviewReasons({issues,structural,bets}),doubtful=reviewReasons.length>0;
@@ -42,11 +51,11 @@ export function reviewInput(doc,mode='doubt') {
     if(mode!=='all'&&!doubtful)continue;
     // Multiline shared-amount statements require reviewing the original as a
     // whole; they are never silently replaced with a single-line AI suggestion.
-    const spansLines=parsed.bets.some(b=>b.line<=line&&b.endLine>=line&&b.line!==b.endLine);
+    const spansLines=spanBets.some(b=>b.line!==b.endLine);
     const explicitMarkets=marketInfo(normalize(body)).markets;
     const inheritsPlay=bets.length?bets.some(b=>b.semantic?.inherited):context.playDeclaration||!!context.play;
-    const preceding=[...new Set([inheritsPlay?context.playSource?.line:null,explicitMarkets.length?null:context.marketSource].filter(n=>n&&n<line))].map(n=>({line:n,body:parsed.contexts.find(c=>c.line===n)?.body||''}));
-    const spans=[...parsed.bets.filter(b=>b.line<=line&&b.endLine>=line),...issues];
+    const preceding=[...new Set([inheritsPlay?context.playSource?.line:null,explicitMarkets.length?null:context.marketSource].filter(n=>n&&n<line))].map(n=>({line:n,body:contextsAt.get(n)?.body||''}));
+    const spans=[...spanBets,...issues];
     const from=Math.min(line,...spans.map(s=>s.line)),to=Math.max(line,...spans.map(s=>s.endLine));
     const dependencies=lines.slice(from-1,to).map(raw=>senderHeader(raw,doc.defaultPlayer)?.body??raw).join('\n');
     const item={line,source,body,context:{markets:explicitMarkets.length?explicitMarkets:context.markets,play:inheritsPlay?context.play:''},playerId:context.playerId,localBets:bets,preceding,evidence:statementEvidence(body),issues:[...issues.map(i=>i.message),...structural.map(i=>i.message)],issueCodes:issues.map(i=>i.code),ignored,spansLines,dependencies,required:!!doubtful,reviewReasons};
@@ -58,16 +67,21 @@ export function reviewInput(doc,mode='doubt') {
 export function currentReviewItems(doc,prepared=reviewInput(doc,'doubt')) {
   if(!assistanceMatches(doc.assistance,doc.text,doc.businessDate,doc.defaultPlayer))return [];
   const requiredLines=new Set(prepared.items.filter(i=>i.required).map(i=>i.line));
+  const preparedAt=new Map(prepared.items.map(item=>[item.line,item]));
+  const totals=new Set(prepared.parsed.metadata.filter(m=>m.kind==='金额声明').map(m=>m.line));
   return doc.assistance.items.map(item=>{
     const unfinished=['pending','failed'].includes(item.status);
-    const resolved=resolvedTotalDeclaration(prepared.parsed,item.line);
+    const resolved=totals.has(item.line)&&resolvedTotalDeclaration(prepared.parsed,item.line);
     const requiresAction=!resolved&&(item.status==='review'||unfinished&&item.required!==false&&requiredLines.has(item.line));
-    return {...item,reviewReasons:prepared.items.find(i=>i.line===item.line)?.reviewReasons||[],requiresAction,localResolved:resolved||unfinished&&!requiresAction};
+    return {...item,reviewReasons:preparedAt.get(item.line)?.reviewReasons||[],requiresAction,localResolved:resolved||unfinished&&!requiresAction};
   });
 }
 
 function quoted(body,value,field,optional=false) {
   if(typeof value!=='string'||value.length>2000||(!optional&&!value)||value&&!body.includes(value))throw new Error(`${field}缺少可定位的原文依据`);
+  // "5" in 各注5 is an amount; the same digit inside 05 is a selection.
+  const amount=field==='amount'&&statementEvidence(body).find(e=>e.field==='amount'&&e.quote===value);
+  if(amount)return {quote:value,start:amount.start,end:amount.end};
   return {quote:value,start:value?body.indexOf(value):-1,end:value?body.indexOf(value)+value.length:-1};
 }
 export function validateCandidate(candidate,item,doc) {
@@ -81,11 +95,12 @@ export function validateCandidate(candidate,item,doc) {
     if(!PLAY_NAMES.includes(b.play)||!['每号','每肖','每尾','每组','整项'].includes(b.basis))throw new Error('候选玩法或计费单位不合法');
     if(!Array.isArray(b.markets)||!b.markets.length||b.markets.some(m=>!MARKETS.includes(m))||new Set(b.markets).size!==b.markets.length)throw new Error('候选市场无效');
     const markets=MARKETS.filter(m=>b.markets.includes(m));
-    if(typeof b.selection!=='string'||!b.selection||b.selection.length>2000||/[\r\n:：]/.test(b.selection)||typeof b.amount!=='string'||!/^\d+(?:\.\d{1,2})?$/.test(b.amount))throw new Error('候选选号或金额格式无效');
+    const zodiacColon=b.play.endsWith('连肖')&&/^[鼠牛虎兔龙蛇马羊猴鸡狗猪\s:：、,，/()（）]+$/.test(b.selection);
+    if(typeof b.selection!=='string'||!b.selection||b.selection.length>2000||/[\r\n]/.test(b.selection)||/[:：]/.test(b.selection)&&!zodiacColon||typeof b.amount!=='string'||!/^\d+(?:\.\d{1,2})?$/.test(b.amount))throw new Error('候选选号或金额格式无效');
     const proof=Object.fromEntries(['market','play','selection','amount'].map(f=>[f,quoted(item.body,b.evidence?.[f],f,['market','play'].includes(f))]));
     if(!proof.market.quote&&markets.join()!==item.context.markets.join())throw new Error('候选擅自改变继承市场');
     if(!new RegExp(`[0-9${CN}壹贰貳叁參肆伍陆陸柒捌玖拾佰仟廿卅]`).test(proof.amount.quote))throw new Error('原文缺少金额依据，不能补造数字');
-    const amountText=normalizeFinancial(proof.amount.quote).normalize('NFKC').trim().replace(/^(?:各|每)(?:个?号(?:码)?|数|肖|组|尾)?\s*/, '').replace(/\s*(?:元|米|块|斤|钱)$/, '');
+    const amountText=normalizeFinancial(proof.amount.quote).normalize('NFKC').trim().replace(/^(?:各|每)(?:个?号(?:码)?|数|肖|组|注|尾)?\s*/, '').replace(/\s*(?:元|米|块|斤|钱)$/, '');
     let knownAmount;try{knownAmount=toCents(amountText);}catch{throw new Error('金额依据无法确定数值，请在原文中明确金额后重试');}
     if(knownAmount!==toCents(b.amount))throw new Error('候选金额与原文明确金额不符');
     if(proof.selection.start<proof.amount.end&&proof.amount.start<proof.selection.end)throw new Error('选号和金额依据重叠，不能把选号补成金额');

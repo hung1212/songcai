@@ -56,7 +56,7 @@ test('市场玩家和玩法标题正确继承，后笔不继承尾数选号，�
   assert.equal(p.bets[0].semantic.inherited,true);assert.equal(p.bets[0].semantic.declaration.line,1);
   assert.equal(p.bets[1].drag,undefined);assert.deepEqual(p.bets[1].values,[1,2]);
   for(const text of ['香港二中二\n\n5尾拖鸡各10','小明：二中二\n张三：5尾拖鸡各10']){
-    const p=parse(text);assert(p.issues.some(i=>i.code==='DAN_TUO'));assert.equal(summarize([p]).totalCents,0);
+    const p=valid(text);assert.equal(p.bets[0].playType,'linked-number-2-2');assert.deepEqual(p.bets[0].markets,['新']);assert.equal(summarize([p]).totalCents,20000);
   }
 });
 
@@ -64,7 +64,7 @@ test('非法尾数、未明确多尾多肖或玩法、单价冲突仍待处理',
   for(const [text,code] of [
     ['二中二10尾拖鸡各10','INVALID_TAIL'],['二中二5尾6尾拖鸡各10','DAN_TUO'],['二中二5尾拖鸡猴各10','DAN_TUO'],
     ['二中二5尾拖鸡拖猴各10','DAN_TUO'],['二中二复式5尾拖鸡各10','DAN_TUO'],['二中二5尾胆拖鸡各10','DAN_TUO'],
-    ['5尾拖鸡各10','DAN_TUO'],['特串5尾拖鸡各10','DAN_TUO'],['三中三5尾拖鸡各10','DAN_TUO'],
+    ['特串5尾拖鸡各10','DAN_TUO'],['三中三5尾拖鸡各10','DAN_TUO'],
     ['二中二5尾拖鸡每肖10','BASIS_CONFLICT'],['二中二5尾拖鸡每尾10','BASIS_CONFLICT'],['二中二5尾拖鸡每号10','BASIS_CONFLICT'],
     ['二中二5尾拖鸡','MISSING_AMOUNT'],['二中二5尾拖鸡每组-10','INVALID_AMOUNT'],
   ]){const p=parse(text);assert(p.issues.some(i=>i.code===code),`${text}: ${JSON.stringify(p.issues)}`);assert.equal(summarize([p]).totalCents,0);}

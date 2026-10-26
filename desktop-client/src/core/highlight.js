@@ -2,11 +2,11 @@ import { senderHeader, playTokens, leadingIssuePrefix, explicitIssueTokens } fro
 import {dottedAmounts,zodiacNumberAmounts,packageAmounts,perZodiacPackages} from './text-format.js';
 import { CATEGORY_ALIASES } from './classifications.js';
 
-const count = '[一二三四五六七八九十两俩0-9０-９]+';
-const number = '(?:[0-9０-９]+(?:[.．][0-9０-９]{1,2})?|[零〇一二三四五六七八九十百千万两壹贰叁肆伍陆柒捌玖拾佰仟]+)';
-const plays = new RegExp(`${count}肖中特|${count}\\s*中[二三234２３４]|${count}\\s*连[肖码尾]|${count}不中|${count}\\s*粒(?:任中)?|平特(?:一肖|肖|尾|码|号码|任中)?|特码|特马|特肖|独肖|一肖|平码|平肖|平尾|连肖|连码|连尾|二中特|两中特|2中特|复式|复试|复实|任中|特串|拖`, 'g');
+const count = '(?:[一二三四五六七八九十两俩]+|[0-9０-９]+)';
+const number = '(?:[0-9０-９]+(?:[.．][0-9０-９]{1,2})?[十百千万拾佰仟萬]?|[零〇一二三四五六七八九十百千万两壹贰叁肆伍陆柒捌玖拾佰仟]+)';
+const plays = new RegExp(`${count}肖中特|${count}\\s*中[二三234２３４]|${count}\\s*连[肖码尾]|${count}不中|${count}\\s*粒(?:任中)?|平特(?:一肖|肖|尾|码|号码|任中)?|特码|特马|特肖|独肖|一肖|平码|平肖|平尾|连肖|连码|连尾|二中特|两中特|2中特|复式|复试|复实|任中|特串|拖|对打|对(?=\\s*[0-9鼠牛虎兔龙蛇马羊猴鸡狗猪（(])|串`, 'g');
 const selections = new RegExp([...new Set(CATEGORY_ALIASES.map(item => item.alias))].sort((a, b) => b.length - a.length).join('|') + '|[红蓝绿兰](?:波)?[单双大小]?(?:波)?|合[单双]|[金木水火土](?:行)?|[鼠牛虎兔龙蛇马羊猴鸡狗猪]|[0-9０-９]+(?:[头尾])?|[大小单双]', 'g');
-const explicitAmount = new RegExp(`(?:各(?:个?(?:号码?|数字|数)|肖|尾|组|注|连|买|写)?|每(?:个?(?:号码?|数字|数)|肖|尾|组|注|个)|组|买|下|落|加|[=＝])\\s*[（(]?\\s*(${number})`, 'g');
+const explicitAmount = new RegExp(`(?:各(?:个?(?:号码?|数字|数)|肖|尾|组|注|连|买|写)?|每(?:个?(?:号码?|数字|数)|肖|尾|组|注|个)|个(?:号码?|数字|数)|组|买|下|落|加|[=＝])\\s*[（(]?\\s*(${number})`, 'g');
 const unitAmount = new RegExp(`(${number})\\s*[元米块斤钱]`, 'g');
 const trailingAmount = new RegExp(`(${number})\\s*[元米块斤钱）)]*\\s*[。.,，#＃;；]*\\s*$`);
 
@@ -38,6 +38,9 @@ export function highlightText(text, defaultPlayer='', selectionLines=[]) {
       selections.lastIndex = 0;
       if (selections.test(prefix) && !styles.slice(start + last.index, start + last.index + last[1].length).includes('play')) mark(start + last.index, last[1].length, 'amount', true);
     }
+    // A trailing 一肖 can touch a Chinese price (三千一肖). Its 一 belongs
+    // to the play, even when the decoration's broad amount regex consumes it.
+    for(const token of playTokens(body))if(['一肖','1肖','独肖'].includes(token.phrase))mark(start+token.start,token.end-token.start,'play',true);
     const issue=leadingIssuePrefix(body);
     if(issue)mark(start+issue.start,issue.end-issue.start,'',true);
     for(const token of explicitIssueTokens(body))mark(start+token.start,token.end-token.start,'',true);

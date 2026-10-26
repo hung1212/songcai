@@ -42,7 +42,7 @@ test('明确特串标题可继承，多市场各自计费，固定拖号不传�
   assert.deepEqual(p.bets[0].groups,groups);assert.equal(p.bets[1].drag,undefined);assert.equal(p.bets[1].groups,null);
   assert.equal(p.bets[3].player,'张三');assert.equal(summarize([p]).totalCents,22000);
   assert.deepEqual(reviewInput(doc(text)).items,[]);
-  assert.equal(parse('小明：旧特串\n张三：45拖鸡各10').issues[0].code,'DAN_TUO');
+  assert.deepEqual(valid('小明：旧特串\n张三：45拖鸡各10').bets.map(b=>[b.playType,b.markets,b.totalCents]),[['linked-number-2-2',['新'],4000]]);
 });
 
 test('特串拖号按农历切年展开四号或五号，重合号码不与自身配对',()=>{
@@ -60,7 +60,7 @@ test('特串拖号按农历切年展开四号或五号，重合号码不与自�
 test('特串其他未确认拖法、非法号码、计费冲突和缺金额继续待处理',()=>{
   for(const [text,code] of [
     ['特串45 44拖鸡各10','DAN_TUO'],['特串45拖鸡兔各10','DAN_TUO'],['特串兔拖鸡猴各10','DAN_TUO'],
-    ['特串复式45拖鸡各10','DAN_TUO'],['特串45胆拖鸡各10','DAN_TUO'],['45拖鸡各10','DAN_TUO'],
+    ['特串复式45拖鸡各10','DAN_TUO'],['特串45胆拖鸡各10','DAN_TUO'],
     ['特串00拖鸡各10','NUMBER_RANGE'],['特串50拖鸡各10','NUMBER_RANGE'],
     ['特串45拖鸡每肖10','BASIS_CONFLICT'],['特串45拖鸡各号10','BASIS_CONFLICT'],
     ['特串45拖鸡','MISSING_AMOUNT'],

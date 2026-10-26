@@ -156,7 +156,7 @@ test('对比方案共用账目范围，收益率按收到投注计算，退水�
   const config=settings(),docs=[doc('新01各100\n新02各50\n旧03各10')];
   const firstBook=specialTransferPlan(docs,config,scope),plans=specialTransferScenarios(firstBook,{mode:'loss',percent:'5'});
   const custom=plans.find(p=>p.id==='custom'),preset=plans.find(p=>p.id==='loss-5');
-  assert.equal(plans.length,8);assert.equal(custom.targetProfitCents,-750);
+  assert.equal(plans.length,9);assert.equal(custom.targetProfitCents,-750);
   assert.deepEqual(custom.transferCents,preset.transferCents);
   for(const p of plans.filter(p=>p.feasible)){
     const average=p.profitCents.reduce((s,n)=>s+n,0)/49;

@@ -78,7 +78,7 @@ test('无单位的数字连写不猜分界，超长小数单价仍待处理', ()
 test('连肖后头尾选号重新识别为特码', () => { amount('二连肖虎兔牛各50\n0尾各30', 270); });
 for (const [name, text, total] of [
   ['普通号码', '26 38各100', 200], ['中文金额', '香港特码鼠各一百二十', 480],
-  ['马年生肖', '香港马各号100', 500], ['特肖', '独肖兔100元', 100],
+  ['马年生肖', '香港马各号100', 500], ['平特肖简称', '独肖兔100元', 100],
   ['多肖中特整项', '新澳六肖中特虎牛兔马蛇龙100', 100], ['二肖中特', '二肖中特虎牛100', 100],
   ['特肖逐肖', '特肖虎牛各100', 200], ['同一行多个金额', '新澳平特猴100，马龙各50', 200],
   ['平特尾不展开号码', '平特：1尾＝150', 150], ['特码尾展开', '新特1尾各20', 100],
@@ -105,7 +105,7 @@ for (const [name, text, total] of [
 for (const [text, code] of [
   ['老五不中1000', 'MISSING_SELECTION'], ['120 1 100', 'NUMBER_RANGE'],
   ['18.4046各20', 'NUMBER_RANGE'], ['六肖中特虎牛兔马蛇100', 'ZODIAC_COUNT'],
-  ['特串5', 'MISSING_SELECTION'], ['二中二兔拖龙各48', 'DAN_TUO'],
+  ['特串5', 'MISSING_SELECTION'], ['二中二兔马拖龙各48', 'DAN_TUO'],
   ['各.5', 'DECIMAL_AMBIGUOUS'], ['1 2各-10', 'INVALID_AMOUNT'], ['0 49各10', 'NUMBER_RANGE'],
 ]) test(`异常不能计费：${text}`, () => { const p = parse(text); assert(p.issues.some(i => i.code === code), JSON.stringify(p.issues)); assert.equal(summarize([p]).totalCents, 0); });
 

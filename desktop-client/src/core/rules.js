@@ -34,6 +34,8 @@ export function ruleForDate(date) {
 export function chineseNumber(value) {
   const s = String(value).replace(/[两俩]/g, '二').replace(/〇/g, '零');
   if (/^\d+(?:\.\d{1,2})?$/.test(s)) return Number(s);
+  const mixed=s.match(/^(\d+(?:\.\d{1,2})?)([十百千万])$/);
+  if(mixed)return Number(mixed[1])*({十:10,百:100,千:1000,万:10000}[mixed[2]]);
   if (!s || [...s].some(c => !CN.includes(c))) return NaN;
   const digits = Object.fromEntries([...'零一二三四五六七八九'].map((c, i) => [c, i]));
   if (!/[十百千万]/.test(s)) return Number([...s].map(c => digits[c]).join(''));

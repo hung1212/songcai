@@ -57,7 +57,7 @@ test('生肖包号支持冒号中文金额和跨行总额，市场继承，包�
 });
 
 test('总额需精确到分，不丢失选号、金额或其他明确玩法；普通特肖与每号旧规则保留',()=>{
-  for(const [source,code] of [['包龙40.01','PACKAGE_SPLIT_PRECISION'],['包龙各40','BASIS_CONFLICT'],['包蛇每号160','BASIS_CONFLICT'],['特肖包龙40','BASIS_CONFLICT'],['平特包龙40','BASIS_CONFLICT'],['三中三包蛇160','BASIS_CONFLICT'],['包龙蛇40','PACKAGE_SELECTION'],['包龙01 40','PACKAGE_SELECTION'],['包龙01/03 40','PACKAGE_SELECTION'],['包龙','MISSING_AMOUNT']]){
+  for(const [source,code] of [['包龙40.01','PACKAGE_SPLIT_PRECISION'],['包龙各40','BASIS_CONFLICT'],['包蛇每组160','BASIS_CONFLICT'],['特肖包龙40','BASIS_CONFLICT'],['平特包龙40','BASIS_CONFLICT'],['三中三包蛇160','BASIS_CONFLICT'],['包龙蛇40','PACKAGE_SELECTION'],['包龙01 40','PACKAGE_SELECTION'],['包龙01/03 40','PACKAGE_SELECTION'],['包龙','MISSING_AMOUNT']]){
     const p=parse(source);assert(p.issues.some(i=>i.code===code),`${source}: ${JSON.stringify(p.issues)}`);assert.equal(summarize([p]).totalCents,0);
   }
   assert.equal(valid('包龙40.04').bets[0].unitCents,1001);

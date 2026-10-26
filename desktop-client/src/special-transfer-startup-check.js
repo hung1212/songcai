@@ -40,8 +40,15 @@ export async function checkSpecialTransferUI(){
     require(host.querySelectorAll('[data-transfer-cents]').length===49,'每个号码都应显示金额');
     const original=displayed(1);require(original>0&&displayed(49)===0,'打出金额或零值错误');
     checkNumbers(expectedScenario('maximin'));
-    require(host.querySelectorAll('[data-transfer-scenario]').length===8,'缺少方案比较');
+    require(host.querySelectorAll('[data-transfer-scenario]').length===9,'缺少方案比较');
     require(host.querySelector('[data-transfer-basis]').textContent.includes('150.00'),'百分比基准应为当前市场扣退水前总投注');
+    host.querySelector('.average-transfer-toggle').click();await nextTick();
+    checkNumbers(expectedScenario('average-excess'));
+    require(host.querySelector('[data-transfer-scenario="average-excess"]').classList.contains('transfer-chosen'),'未选中超出平均方案');
+    require(displayed(1)===9694&&displayed(2)===4694&&displayed(49)===0,'超额应按分，包含零投注号码计算平均');
+    require(host.querySelector('[data-average-transfer-explanation]')?.textContent.includes('3.06'),'平均及按分说明缺失');
+    require(host.querySelector('.transfer-summary header').textContent.includes('超额按分转出'),'错误显示为整元方案');
+    await select('集合号码排序','zodiac');checkNumbers(expectedScenario('average-excess'));
     await choose('none');require([...host.querySelectorAll('[data-transfer-cents]')].every(el=>el.dataset.transferCents==='0'),'不转出应显示49个零值');
     checkNumbers(expectedScenario('none'));
     await choose('loss-5');checkNumbers(expectedScenario('loss-5'));
@@ -66,6 +73,12 @@ export async function checkSpecialTransferUI(){
     settings.value.rebates={'转出测试':{perTenThousandCents:30000}};await nextTick();
     checkNumbers(expectedScenario('maximin'));
     require(host.querySelector('.transfer-summary').textContent.includes('7.50'),'玩家退水未更新');
+    await choose('average-excess');checkNumbers(expectedScenario('average-excess'));
+    const previousExcess=displayed(1),previousProfit=expectedScenario('average-excess').profitCents[0];
+    settings.value.playerOdds['转出测试'].markets.新.rates['special-number'].rate='41';await nextTick();
+    checkNumbers(expectedScenario('average-excess'));require(displayed(1)===previousExcess&&expectedScenario('average-excess').profitCents[0]<previousProfit,'赔率应改变盈亏但不能改变投注平均和超额');
+    results.value=[parse('新01各250\n新02各50\n旧03各10')];await nextTick();
+    checkNumbers(expectedScenario('average-excess'));require(displayed(1)>previousExcess,'修改投注未重算平均与超额');
     await choose('loss-5');checkNumbers(expectedScenario('loss-5'));
     results.value=[parse('新01各300\n新02各50\n旧03各10')];await nextTick();checkNumbers(expectedScenario('loss-5'));
     require(host.querySelector('[data-transfer-basis]').textContent.includes('350.00'),'修改账目后比例基准未更新');
@@ -84,6 +97,11 @@ export async function checkSpecialTransferUI(){
     settings.value={odds:Object.fromEntries(['新','旧','港'].map(m=>[m,{...defaultOdds(),confirmed:true}])),rebates:{},playerOdds:{}};
     results.value=[parse('新01各100\n新02各4600')];await nextTick();host.querySelector('.transfer-toggle').click();await nextTick();await choose('none');
     checkNumbers(expectedScenario('none'));require(host.querySelector('[data-number="1"] .number-profit-flat'),'零盈亏应显示持平');
+    host.querySelector('.transfer-toggle').click();await nextTick();
+    await select('集合业务日期','');await select('集合市场','');
+    host.querySelector('.average-transfer-toggle').click();await nextTick();
+    require(host.querySelector('[aria-label="集合业务日期"]').value===date&&host.querySelector('[aria-label="集合市场"]').value==='新','平均转出入口未选择单日单市场');
+    checkNumbers(expectedScenario('average-excess'));
     return true;
   }finally{app.unmount();host.remove();}
 }

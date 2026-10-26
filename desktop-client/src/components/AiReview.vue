@@ -5,13 +5,15 @@ import {computed,onMounted,onBeforeUnmount,ref,watch} from 'vue';
 import {reviewInput,documentReviewKey,assistanceFor,decideReview,decideReviewGroup,currentReviewItems,reviewFailureMessage} from '../core/ai-review.js';
 import {assistanceMatches,STANDARD_RULES} from '../core/semantic-rules.js';
 import {formatMoney as money} from '../core/rules.js';
-const props=defineProps({document:Object,prepare:Function,apply:Function});
+import {createParseWorker} from '../parse-worker-client.js';
+const props=defineProps({document:Object,prepare:Function,apply:Function,visible:{type:Boolean,default:true}});
 const api=songcai?.ai,loaded=ref(null),settings=ref(null),apiKey=ref(''),clearKey=ref(false),error=ref(''),message=ref(''),busy=ref(false),configBusy=ref(false),showSettings=ref(false),history=ref([]),aliasScope=ref('player');
-let timer,requestId='',disposed=false,lastAutomaticKey='',historyToken=0,cacheToken=0;
+let timer,cacheTimer,requestId='',disposed=false,lastAutomaticKey='',historyToken=0,cacheToken=0;
+const reviewWorker=createParseWorker();
 async function loadHistory(){const token=++historyToken,id=props.document.id;const result=await api.history({id});if(!disposed&&token===historyToken&&props.document.id===id)history.value=result;}
 const current=computed(()=>assistanceMatches(props.document.assistance,props.document.text,props.document.businessDate,props.document.defaultPlayer)?props.document.assistance:null);
-const items=computed(()=>currentReviewItems(props.document,local.value));
-const local=computed(()=>{try{return reviewInput(props.document,'doubt');}catch{return {items:[],parsed:{bets:[]}};}});
+const items=computed(()=>props.visible?currentReviewItems(props.document,local.value):[]);
+const local=computed(()=>{if(!props.visible)return {items:[],parsed:{bets:[],issues:[],metadata:[]}};try{return reviewInput(props.document,'doubt');}catch{return {items:[],parsed:{bets:[]}};}});
 const reviewPage=ref(1),onlyPending=ref(false);
 const filteredItems=computed(()=>onlyPending.value?items.value.filter(i=>i.requiresAction):items.value);
 const visibleItems=computed(()=>filteredItems.value.slice((reviewPage.value-1)*30,reviewPage.value*30));
@@ -51,8 +53,12 @@ async function run(full=false,force=false,retryLine){
     message.value=cached.running?'已有核验正在进行，相同内容不会重复发送。':'已复用本账目的核验记录。';return;
   }
   busy.value=true;requestId=doc.id;message.value='';
-  const prepared=reviewInput(doc,mode),pending=assistanceFor(doc,prepared.items.map(i=>cached.items.find(r=>r.fragmentKey===i.fragmentKey)||{line:i.line,source:i.source,fragmentKey:i.fragmentKey,status:'pending',required:i.required,reviewReasons:i.reviewReasons,localCents:i.localBets.reduce((n,b)=>n+b.totalCents,0),replacement:'',candidates:[],reason:'等待AI核验'}),'',cached);
+  let pending;
   try{
+    const prepared=await reviewWorker.review(doc,mode);
+    if(disposed||documentReviewKey(props.document)!==sourceKey)return;
+    const cachedByKey=new Map(cached.items.map(item=>[item.fragmentKey,item]));
+    pending=assistanceFor(doc,prepared.items.map(i=>cachedByKey.get(i.fragmentKey)||{line:i.line,source:i.source,fragmentKey:i.fragmentKey,status:'pending',required:i.required,reviewReasons:i.reviewReasons,localCents:i.localBets.reduce((n,b)=>n+b.totalCents,0),replacement:'',candidates:[],reason:'等待AI核验'}),'',cached);
     await props.apply(doc.id,sourceKey,pending);
     const result=await api.review({document:doc,mode,force,retryLine,generation:cached.generation});
     if(!result.invalidated&&!disposed&&props.document.id===doc.id){
@@ -63,7 +69,7 @@ async function run(full=false,force=false,retryLine){
     }
     loaded.value=await api.load();if(!disposed&&props.document.id===doc.id)await loadHistory();
   }catch(e){
-    if(!disposed&&documentReviewKey(props.document)===sourceKey)await props.apply(doc.id,sourceKey,assistanceFor(doc,pending.items.map(i=>i.status==='pending'?{...i,status:'failed',reason:reviewFailureMessage(e)}:i),'',cached));
+    if(!disposed&&pending&&documentReviewKey(props.document)===sourceKey)await props.apply(doc.id,sourceKey,assistanceFor(doc,pending.items.map(i=>i.status==='pending'?{...i,status:'failed',reason:reviewFailureMessage(e)}:i),'',cached));
     throw e;
   }finally{busy.value=false;requestId='';if(!disposed)schedule();}
 }
@@ -71,13 +77,18 @@ async function decide(item,choice){const doc=JSON.parse(JSON.stringify(props.doc
 async function decideGroup(item,candidate){const doc=JSON.parse(JSON.stringify(props.document));await props.apply(doc.id,documentReviewKey(doc),decideReviewGroup(doc,item.line,candidate.replacement));await refreshCached();}
 async function saveSettings(){configBusy.value=true;try{loaded.value=await api.configure({...settings.value,apiKey:apiKey.value,clearKey:clearKey.value});settings.value={...loaded.value.settings};apiKey.value='';clearKey.value=false;message.value='设置已保存';lastAutomaticKey='';window.dispatchEvent(new CustomEvent('songcai:ai-settings'));schedule();}finally{configBusy.value=false;}}
 async function remember(item,index){loaded.value=await api.remember({document:JSON.parse(JSON.stringify(props.document)),runId:item.runId||current.value.runId,line:item.line,candidate:index,scope:aliasScope.value});message.value='已保存完整表达规则；同样表达和上下文下复用，金额变化不会直接套用。';}
-watch(()=>[props.document.id,props.document.text,props.document.businessDate,props.document.defaultPlayer],()=>{schedule();if(api){action(refreshCached);action(loadHistory);}});
+watch(()=>[props.document.id,props.document.text,props.document.businessDate,props.document.defaultPlayer],()=>{
+  // Invalidate old replies immediately, but read the cache only after typing pauses.
+  cacheToken++;clearTimeout(cacheTimer);schedule();
+  if(api)cacheTimer=setTimeout(()=>action(refreshCached),800);
+});
+watch(()=>props.document.id,()=>{historyToken++;history.value=[];if(api)action(loadHistory);});
 function refreshSettings(){action(load);}
-onMounted(()=>{window.addEventListener('songcai:ai-settings',refreshSettings);action(load);});onBeforeUnmount(()=>{window.removeEventListener('songcai:ai-settings',refreshSettings);disposed=true;cacheToken++;clearTimeout(timer);});
+onMounted(()=>{window.addEventListener('songcai:ai-settings',refreshSettings);action(load);});onBeforeUnmount(()=>{window.removeEventListener('songcai:ai-settings',refreshSettings);disposed=true;cacheToken++;reviewWorker.dispose();clearTimeout(timer);clearTimeout(cacheTimer);});
 </script>
 
 <template>
- <div class="page-body ai-page">
+ <div v-if="visible" class="page-body ai-page">
   <section class="page-heading"><div><div class="eyebrow">RULES & AI REVIEW</div><h1>AI 核验</h1><p>{{document.name||'当前账目'}} · 原文保留，规则判断与AI解释逐项核对。</p></div><button class="button" @click="showSettings=!showSettings">{{showSettings?'收起接口设置':'接口设置'}}</button></section>
   <p v-if="!api" class="ai-note">浏览器预览只展示本地规则。桌面客户端默认调用本机 Codex，复用其配置和登录。</p>
   <section v-if="showSettings" class="panel ai-settings">

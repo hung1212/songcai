@@ -42,7 +42,7 @@ test('继承二中二和市场，但后续普通投注不继承固定拖号，�
   assert.equal(p.bets[1].groups,null);assert.equal(p.bets[1].drag,undefined);
   assert.deepEqual(p.bets[1].values,[1,2]);assert.equal(summarize([p]).totalCents,20500);
   assert.equal(p.bets[3].player,'张三');assert.deepEqual(reviewInput(doc(text)).items,[]);
-  assert.equal(parse('小明：二中二30拖鼠各10\n张三：30拖鼠各10').issues[0].code,'DAN_TUO');
+  assert.equal(valid('小明：二中二30拖鼠各10\n张三：30拖鼠各10').bets[1].playType,'linked-number-2-2');
 });
 
 test('拖生肖在农历新年切换号码，四号五号按实际组数计费',()=>{
@@ -63,10 +63,10 @@ test('固定号码属于所拖生肖时排除自身，明确列出实际分组',
 
 test('其他拖法、不合法号码、计费冲突和缺少金额仍待处理，不误算普通复式',()=>{
   for(const [text,code] of [
-    ['二中二兔拖龙各48','DAN_TUO'],['二中二30 31拖鼠各10','DAN_TUO'],
+    ['二中二兔马拖龙各48','DAN_TUO'],['二中二30 31拖鼠各10','DAN_TUO'],
     ['二中二30拖鼠牛各10','DAN_TUO'],['三中三30拖鼠各10','DAN_TUO'],
     ['二中二复式30拖鼠各10','DAN_TUO'],['二中二30胆拖鼠各10','DAN_TUO'],
-    ['30拖鼠各10','DAN_TUO'],['二中二00拖鼠各10','NUMBER_RANGE'],['二中二50拖鼠各10','NUMBER_RANGE'],
+    ['二中二00拖鼠各10','NUMBER_RANGE'],['二中二50拖鼠各10','NUMBER_RANGE'],
     ['二中二30拖鼠各号10','BASIS_CONFLICT'],['二中二30拖鼠每肖10','BASIS_CONFLICT'],
     ['二中二30拖鼠','MISSING_AMOUNT'],
   ]){
@@ -96,7 +96,7 @@ test('AI保留拖字和原金额，由本地展开；拒绝改成复式、特肖
   assert.throws(()=>validateCandidate({bets:[{...b,selection:'30鼠'}]},item,d),/分组/);
   assert.throws(()=>validateCandidate({bets:[{...b,play:'特肖',basis:'每肖',selection:'鼠'}]},item,d),/选号|玩法|分组/);
   assert.throws(()=>validateCandidate({bets:[{...b,amount:'40'}]},item,d),/金额/);
-  const unsupported=doc('二中二兔拖龙各48'),pending=reviewInput(unsupported).items[0];
+  const unsupported=doc('二中二兔马拖龙各48'),pending=reviewInput(unsupported).items[0];
   assert.throws(()=>validateCandidate(candidate,pending,unsupported),/拖号分组未明确/);
 });
 

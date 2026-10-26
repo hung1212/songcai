@@ -9,7 +9,7 @@ export const receiptMoney=cents=>formatMoney(cents).replace(/\.00$/,'').replace(
 export const receiptMarketName=market=>({新:'新澳',旧:'旧澳',港:'香港'})[market]||market;
 const sum=values=>{const value=values.reduce((n,v)=>n+BigInt(v),0n);if(value>BigInt(Number.MAX_SAFE_INTEGER)||value<BigInt(Number.MIN_SAFE_INTEGER))throw new Error('结算单金额超出精确范围');return Number(value);};
 const rateText=rate=>/^\d+(?:\.\d+)?$/.test(String(rate))?String(rate).replace(/(\.\d*?)0+$/,'$1').replace(/\.$/,''):'';
-const tierNames={'three-two':'中二正码','three-three':'中三正码','two-normal':'二正码','two-special':'正码＋特码','zero-tail':'0尾'};
+const tierNames={'linked-number-2-2-special':'正码＋特码','three-two':'中二正码','three-three':'中三正码','two-normal':'二正码','two-special':'正码＋特码','zero-tail':'0尾'};
 const ballColors={红:['#f88487','#d93143','#a61930'],蓝:['#78b8f6','#2876d1','#1752a1'],绿:['#75c79d','#208857','#12633d']};
 const rebatePlayOrder=new Map(REBATE_PLAYS.map((p,i)=>[p.id,i]));
 // Include every recorded stake, regardless of win, refund or settlement status.
@@ -79,12 +79,20 @@ export function ledgerReceipt({document,result,inputs,history=false,latestNewDat
       const stake=Number.isSafeInteger(unit)&&Number.isSafeInteger(tier.count)?sum([BigInt(unit)*BigInt(tier.count)]):tiers.length===1?wonStake(entry,bets.get(entry.betId)):null;
       const valid=stake!==null&&!!rate&&typeof principal==='boolean';if(!valid)missingDetails=true;
       const key=JSON.stringify([entry.market,entry.playType,entry.play,tier.key,tier.yearAnimal||'',rate,principal,valid]);
-      const item=groups.get(key)||{key,market:entry.market,play:entry.play,detail:tier.yearAnimal?`${tier.yearAnimal}年生肖档`:tierNames[tier.key]||'',rate,includePrincipal:principal,stakeCents:0,payoutCents:0,count:0,complete:valid};
+      const item=groups.get(key)||{key,market:entry.market,play:entry.play,detail:tier.yearAnimal?`${tier.yearAnimal}年生肖档`:tierNames[tier.key]||'',rate,includePrincipal:principal,stakeCents:0,payoutCents:0,count:0,complete:valid,stakeParts:new Map()};
+      // Only winning units in this rate tier contribute; total bet turnover
+      // includes losing selections and must never be used for this breakdown.
+      if(!Number.isSafeInteger(unit)||unit<=0||!Number.isSafeInteger(tier.count)||tier.count<=0)item.stakeParts=null;
+      else if(item.stakeParts)item.stakeParts.set(unit,sum([item.stakeParts.get(unit)||0,tier.count]));
       item.stakeCents=stake===null?null:item.stakeCents===null?null:sum([item.stakeCents,stake]);
       item.payoutCents=sum([item.payoutCents,tier.payoutCents]);item.count=sum([item.count,tier.count||0]);groups.set(key,item);
     }
   }
-  const rows=[...groups.values()].sort((a,b)=>MARKETS.indexOf(a.market)-MARKETS.indexOf(b.market)||b.payoutCents-a.payoutCents);
+  const rows=[...groups.values()].map(({stakeParts,...row})=>{
+    const parts=stakeParts?[...stakeParts].map(([unitCents,count])=>({unitCents,count})):null;
+    if(parts&&sum(parts.map(part=>BigInt(part.unitCents)*BigInt(part.count)))!==row.stakeCents)throw new Error('中奖投注拆分与中奖金额不一致');
+    return {...row,stakeParts:parts};
+  }).sort((a,b)=>MARKETS.indexOf(a.market)-MARKETS.indexOf(b.market)||b.payoutCents-a.payoutCents);
   const winningPayout=sum(result.entries.filter(e=>e.status==='won').map(e=>e.payoutCents));
   if(sum(rows.map(r=>r.payoutCents))!==winningPayout)throw new Error('中奖明细与赔付总额不一致');
   if(sum(result.entries.map(e=>e.payoutCents||0))!==result.payoutCents||sum([winningPayout,result.refundCents])!==result.payoutCents)throw new Error('赔付明细汇总不一致');
@@ -113,11 +121,34 @@ export function receiptFormula(row) {
   if(!row.complete)return `${row.stakeCents===null?'中奖金额待核对':receiptMoney(row.stakeCents)} · 赔率未留存`;
   return `${receiptMoney(row.stakeCents)} × ${row.includePrincipal?row.rate:`(${row.rate}＋1)`}`;
 }
+export function receiptWinningStakeLines(row) {
+  if(!row.stakeParts?.length)return ['中奖投注明细未留存'];
+  const terms=row.stakeParts.map(part=>receiptMoney(part.unitCents)+(part.count>1?`×${part.count}`:''));
+  const chunks=['中奖投注：',...terms.map((term,index)=>(index?'＋':'')+term),
+    terms.length===1&&row.stakeParts[0].count===1?'元':`＝${receiptMoney(row.stakeCents)}元`];
+  // Wrap at terms, keeping numbers intact. CJK characters are roughly twice
+  // the width of digits at the same font size; preview and export share this.
+  const width=text=>Array.from(text).reduce((n,c)=>n+(c.charCodeAt(0)<128?1:2),0);
+  const lines=[];let line='';
+  for(const chunk of chunks){if(line&&width(line+chunk)>66){lines.push(line);line='';}line+=chunk;}
+  if(line)lines.push(line);
+  return lines;
+}
 export const receiptRebateFormula=row=>row.turnoverCents===null?'历史记录未保存玩法明细':`有效流水 ${receiptMoney(row.turnoverCents)} · ${row.rate}`;
 export function receiptPages(receipt,{showPlayStakes=false}={}){
   const rebateRows=receipt.rebateRows||[],playStakeRows=receipt.playStakeRows||[];
-  const total=Math.max(1,Math.ceil(receipt.rows.length/18),Math.ceil(rebateRows.length/18),showPlayStakes?Math.ceil(playStakeRows.length/18):0);
-  return Array.from({length:total},(_,i)=>({...receipt,rows:receipt.rows.slice(i*18,(i+1)*18),rebateRows:rebateRows.slice(i*18,(i+1)*18),
+  const winningPages=[[]];let winningHeight=0;
+  for(const row of receipt.rows){
+    const lines=receiptWinningStakeLines(row),slices=Math.ceil(lines.length/36);
+    for(let part=0;part<slices;part++){
+      const detailLines=lines.slice(part*36,(part+1)*36),height=102+22*detailLines.length;
+      if(winningPages.at(-1).length&&(winningPages.at(-1).length>=18||winningHeight+height>2400)){winningPages.push([]);winningHeight=0;}
+      winningPages.at(-1).push(slices===1?row:{...row,key:`${row.key}:detail:${part}`,stakeDetailLines:detailLines,stakeDetailPage:part+1,stakeDetailPages:slices});
+      winningHeight+=height;
+    }
+  }
+  const total=Math.max(1,winningPages.length,Math.ceil(rebateRows.length/18),showPlayStakes?Math.ceil(playStakeRows.length/18):0);
+  return Array.from({length:total},(_,i)=>({...receipt,rows:winningPages[i]||[],rebateRows:rebateRows.slice(i*18,(i+1)*18),
     playStakeRows:playStakeRows.slice(i*18,(i+1)*18),playStakeRowCount:playStakeRows.length,
     winningRowCount:receipt.rows.length,rebateRowCount:rebateRows.length,page:i+1,pages:total}));
 }
@@ -181,7 +212,13 @@ export function receiptSvg(card,{showName=false,showPlayStakes=false}={}) {
   if(!card.rows.length){y+=45;text(32,y,card.winningRowCount?'中奖明细见其他页':card.status==='pending'?'尚无已计算的中奖记录':'无中奖记录',21,'#7c8c82');y+=29;line(y);}
   for(const row of card.rows){
     y+=32;text(32,y,row.play,22,'#2e5142',600,'start',175);text(435,y,receiptFormula(row),21,'#567162',400,'end',220);text(608,y,receiptMoney(row.payoutCents),25,'#245e44',650,'end',155);
-    y+=29;text(32,y,`${receiptMarketName(row.market)}${row.detail?' · '+row.detail:''}`,16,'#7b8b80',400,'start',540);y+=23;line(y);
+    y+=29;text(32,y,`${receiptMarketName(row.market)}${row.detail?' · '+row.detail:''}`,16,'#7b8b80',400,'start',540);
+    if(row.stakeDetailPages>1){y+=23;text(32,y,`中奖金额构成 ${row.stakeDetailPage}/${row.stakeDetailPages} · 金额只计一次`,14,'#7b8b80');}
+    const stakeLines=row.stakeDetailLines||receiptWinningStakeLines(row);
+    parts.push(`<g data-winning-stakes="${escape(row.key)}">`);
+    y+=12;rect(32,y,576,stakeLines.length*22+12,'#f5f8f6',7);
+    for(const [index,value] of stakeLines.entries())text(44,y+23+index*22,value,16,'#567162',400,'start',552);
+    y+=stakeLines.length*22+24;parts.push('</g>');line(y);
   }
   if(card.refundCents){y+=34;text(32,y,'退本金',19,'#527266');text(608,y,receiptMoney(card.refundCents),23,'#355445',600,'end');y+=20;line(y);}
   y+=42;text(32,y,card.status==='pending'?'已算赔付':'赔付合计',21,'#385a49',600);text(608,y,`¥ ${receiptMoney(card.payoutCents)}`,29,'#285d42',700,'end',350);y+=26;

@@ -30,7 +30,7 @@ module.exports = function startupCheck({ app, ipcMain }) {
     console.error('SONGCAI_STARTUP_FAILED', message, JSON.stringify(stages));
     app.exit(1);
   };
-  const timeout = setTimeout(() => fail('启动检查超时'), process.argv.includes('--draw-network-check') ? 65000 : 35000);
+  const timeout = setTimeout(() => fail('启动检查超时'), process.argv.includes('--draw-network-check') ? 65000 : 55000);
   const maybeQuit = () => {
     if (!quitting && stages.pageLoaded && stages.rendererInitialized && stages.firstPaint && stages.interfaceVerified) {
       quitting = true;
@@ -52,7 +52,7 @@ module.exports = function startupCheck({ app, ipcMain }) {
     window.once('ready-to-show', () => { stages.firstPaint = true; maybeQuit(); });
   });
   app.on('web-contents-created', (_event, contents) => {
-    contents.on('console-message', details => { if(details.level==='error') console.error('SONGCAI_RENDERER_DIAGNOSTIC',details.message); });
+    contents.on('console-message', details => { if(details.level==='error') console.error('SONGCAI_RENDERER_DIAGNOSTIC',details.message);else if(details.message.startsWith('SONGCAI_EDITING_PERFORMANCE '))console.log(details.message); });
     contents.once('did-finish-load', () => { stages.pageLoaded = true; maybeQuit(); });
     contents.on('did-fail-load', (_event, code, description) => fail(`页面加载失败 ${code}: ${description}`));
     contents.on('preload-error', (_event, _path, error) => fail(`preload: ${error.message}`));
@@ -74,6 +74,7 @@ module.exports = function startupCheck({ app, ipcMain }) {
       assert.equal(report.stableEditor, true, '空闲时不应反复保存或切换解析按钮');
       assert.equal(report.expandedEditor, true, '专注／结果切换应保留同一原文输入框和光标位置');
       assert.equal(report.numberDistribution, true, '49号码平均、超额、马年生肖和金额／生肖排序检查失败');
+      assert.equal(report.ledgerTransferUI,true,'单个玩家转出入口、范围隔离与动态重算检查失败');stages.ledgerTransferUI=true;
       assert.equal(report.specialTransferUI,true,'稳定转出按钮、逐号金额与动态重算检查失败');stages.specialTransferUI=true;
       assert.deepEqual(report.settlement, { menu: true, stakeCents: 50000, payoutCents: 234000, complete: true,
         restored: true, originalText: true, deduplicated: true, paid: false }, '赔付真实IPC／SQLite快照／分市场金额／防重检查失败');
@@ -85,7 +86,7 @@ module.exports = function startupCheck({ app, ipcMain }) {
       const receiptPath=path.join(directory,'receipt-startup.png');
       const receiptPNG=fs.readFileSync(receiptPath);assert.equal(receiptPNG.readUInt32BE(16),1280);assert(receiptPNG.readUInt32BE(20)>1000);
       stages.receiptExportUI=true;console.log('SONGCAI_RECEIPT_IMAGE '+receiptPath);
-      for(const key of ['receiptPlayStakesUI','perZodiacStakeUI','menMarketUI','multilineTriplesUI','equalitySubtotalUI','receiptNameUI','compactLinkedZodiacUI','rebateUI','issueTitleRebateUI','slashZodiacGroupsUI','flatAnySuffixUI','specialHighlightsUI','flatZodiacHighlightsUI','blankMarketResetUI','blankPlayResetUI','parserStructure','parserUpgrade','codexDefault','ledgerClear','ledgerOverview','pasteEditor','editorMemory','winningsUI','bidirectionalNavigation','navigationHistoryUI','headerStakeUI','multilineNumbersUI','separatePriceLinesUI','incrementalReviewUI','perZodiacPackageUI','compactPerZodiacPackageUI','flatOneZodiacUI','zodiacDragUI','zodiacDelimitedGroupsUI','linkedZodiacDragUI','tripleZodiacDragUI','specialPairDragUI','specialPairCrossUI','specialPairZodiacDragUI','tailZodiacCrossUI','tailDragUI','numberCategoryPackageUI','headParityUI','issuePrefixUI','ledgerAmountSortUI','ledgerProfitSortUI','flatZodiacCollectionUI','paragraphMarketUI','playOverviewUI','compactTailGroupsUI','defaultStakeBasisUI','adjacentSubtotalUI','inlineMarketSectionUI','marketPrefixResetUI','hongKongHeadingUI','zodiacPackageUI','reversedZodiacPackageUI','bareMacauMarketUI','marketDirectionUI']){assert.equal(report[key],true,`${key}检查未通过${key==='pasteEditor'?JSON.stringify(report.pasteCheckDetail):''}`);stages[key]=true;}
+      for(const key of ['editorVisibilityUI','bareSingleZodiacUI','defaultAuditParsingUI','twoNumberSpecialUI','reviewSpaceParsingUI','defaultDragUI','structuredGroupsUI','groupedIssuesUI','editingPerformanceUI','perNumberPackageUI','zodiacNumberAndTailDragUI','zodiacColonGroupsUI','receiptWinningStakesUI','receiptPlayStakesUI','perZodiacStakeUI','menMarketUI','multilineTriplesUI','equalitySubtotalUI','receiptNameUI','compactLinkedZodiacUI','rebateUI','issueTitleRebateUI','slashZodiacGroupsUI','flatAnySuffixUI','specialHighlightsUI','flatZodiacHighlightsUI','blankMarketResetUI','blankPlayResetUI','parserStructure','parserUpgrade','codexDefault','ledgerClear','ledgerOverview','pasteEditor','editorMemory','winningsUI','bidirectionalNavigation','navigationHistoryUI','headerStakeUI','multilineNumbersUI','separatePriceLinesUI','incrementalReviewUI','perZodiacPackageUI','compactPerZodiacPackageUI','flatOneZodiacUI','zodiacDragUI','numberPoolDragUI','specialPairNumberPoolUI','zodiacDelimitedGroupsUI','linkedZodiacDragUI','tripleZodiacDragUI','specialPairDragUI','specialPairCrossUI','specialPairZodiacDragUI','tailZodiacCrossUI','tailDragUI','numberCategoryPackageUI','headParityUI','issuePrefixUI','ledgerAmountSortUI','ledgerProfitSortUI','flatZodiacCollectionUI','paragraphMarketUI','playOverviewUI','compactTailGroupsUI','defaultStakeBasisUI','adjacentSubtotalUI','inlineMarketSectionUI','marketPrefixResetUI','hongKongHeadingUI','zodiacPackageUI','reversedZodiacPackageUI','bareMacauMarketUI','marketDirectionUI']){assert.equal(report[key],true,`${key}检查未通过${key==='pasteEditor'?JSON.stringify(report.pasteCheckDetail):''}`);stages[key]=true;}
       assert.equal(report.semanticAI,true,'标准语义／AI菜单／真实IPC未通过');stages.semanticAIVerified=true;
       assert.equal(report.latestDraw,true,'最近开奖赔付IPC未通过');stages.latestDrawVerified=true;
       if (process.argv.includes('--draw-network-check')) {

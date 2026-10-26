@@ -209,3 +209,8 @@
 .entry-workspace .bet-expanded .continuation-note{color:#427d67;font-size:11px}
 @media(max-width:1250px){.entry-heading-actions{flex:1 1 100%}.entry-title-group .entry-title{max-width:220px}.entry-title-group{gap:12px}}
 @media(max-width:720px){.entry-title-group{gap:10px}.entry-stake{padding:8px 10px}.entry-stake .entry-total{font-size:23px}.entry-title-group .entry-title{flex-basis:100%;max-width:100%}}
+
+/* Native scrolling keeps text and row backgrounds in one painted surface. */
+.entry-workspace .highlight-viewport{scrollbar-width:none}
+.entry-workspace .source-editor.highlight-preparing .highlight-viewport{display:block;visibility:hidden}
+.entry-workspace .line-numbers{padding-bottom:28px}

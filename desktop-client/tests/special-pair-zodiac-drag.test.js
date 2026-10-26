@@ -54,7 +54,7 @@ test('市场与玩家继承保留，普通投注不继承拖肖，空行和换�
   assert.equal(p.bets[0].semantic.inherited,true);assert.equal(p.bets[0].semantic.declaration.line,1);
   assert.equal(p.bets[1].zodiacCross,undefined);
   for(const text of ['香港特串\n\n猴拖鸡每组5','小明：特串\n张三：猴拖鸡每组5']){
-    assert(parse(text).issues.some(i=>i.code==='DAN_TUO'));assert.equal(summarize([parse(text)]).totalCents,0);
+    const reset=valid(text);assert.equal(reset.bets[0].playType,'linked-number-2-2');assert.deepEqual(reset.bets[0].markets,['新']);assert.equal(summarize([reset]).totalCents,8000);
   }
 });
 
@@ -62,7 +62,7 @@ test('歧义拖法和计费冲突仍待处理，现有特串复式、单号拖�
   for(const [text,code] of [
     ['特串猴拖猴每组5','GROUP_SIZE'],['特串猴拖鸡兔每组5','DAN_TUO'],['特串猴兔拖鸡每组5','DAN_TUO'],
     ['特串猴拖鸡拖狗每组5','DAN_TUO'],['特串复式猴拖鸡每组5','DAN_TUO'],['特串猴胆拖鸡每组5','DAN_TUO'],
-    ['猴拖鸡每组5','DAN_TUO'],['二中二猴拖鸡每组5','DAN_TUO'],['特串猴拖鸡每肖5','BASIS_CONFLICT'],
+    ['二中二猴鼠拖鸡每组5','DAN_TUO'],['特串猴拖鸡每肖5','BASIS_CONFLICT'],
     ['特串猴拖鸡各号5','BASIS_CONFLICT'],['特串猴拖鸡','MISSING_AMOUNT'],['特串猴拖鸡每组-5','INVALID_AMOUNT'],
   ]){const p=parse(text);assert(p.issues.some(i=>i.code===code),`${text}: ${JSON.stringify(p.issues)}`);assert.equal(summarize([p]).totalCents,0);}
   assert.equal(valid('特串复式猴鸡每组5').bets[0].count,28);

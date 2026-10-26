@@ -1,4 +1,5 @@
 import {formatMoney} from './rules.js';
+export const payoutTierLabel=tier=>({'linked-number-2-2':'二正码','linked-number-2-2-special':'正码＋特码','three-two':'中二正码','three-three':'中三正码','two-normal':'二正码','two-special':'正码＋特码','zero-tail':'0尾'}[tier.key]||'');
 
 export function wonStake(entry, bet) {
   if(entry.status!=='won')return null;

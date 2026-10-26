@@ -1,6 +1,6 @@
 import {ANIMALS,CN} from './rules.js';
 
-const amount=`(?:[0-9０-９]+(?:[.．][0-9０-９]{1,2})?|[${CN}壹贰貳叁參肆伍陆陸柒捌玖拾佰仟萬]+)`;
+const amount=`(?:[0-9０-９]+(?:[.．][0-9０-９]{1,2})?[十百千万拾佰仟萬]?|[${CN}壹贰貳叁參肆伍陆陸柒捌玖拾佰仟萬]+)`;
 const marker='(?:各(?:个?(?:号码?|数字|数)|肖|尾|组|注|连|买|写)?|每(?:个?(?:号码?|数字|数)|肖|尾|组|注|个)|总合计|合计|总共|共计|一共|共)';
 const currency='[元米块斤钱圆圓]';
 // Explicit 特包 plus a per-zodiac total is distinct from the ordinary

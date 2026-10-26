@@ -20,11 +20,12 @@ class SettlementStore {
       this.db.prepare('UPDATE settings SET revision=?,payload=? WHERE id=1').run(previous.revision+1,JSON.stringify({sources:previous.sources,odds:previous.odds,rebates:previous.rebates||{},playerOdds:previous.playerOdds||{}}));
     }
   }
-  settings() {const row=this.db.prepare('SELECT * FROM settings WHERE id=1').get();return {rebates:{},playerOdds:{},...JSON.parse(row.payload),revision:row.revision};}
+  settings() {const row=this.db.prepare('SELECT * FROM settings WHERE id=1').get(),settings={rebates:{},playerOdds:{},...JSON.parse(row.payload),revision:row.revision};settings.odds=Object.fromEntries(Object.entries(settings.odds).map(([m,odds])=>[m,this.core.withOptionalOdds(odds)]));return settings;}
   saveSettings(input) {
     const current=this.settings();if(input.revision!==current.revision)throw new Error('赔率设置已更新，请重新加载再保存');
     const settings={sources:this.draws.normalizeSources(input.sources),odds:{},rebates:this.core.validateRebates(input.rebates??current.rebates),playerOdds:this.core.validatePlayerOdds(input.playerOdds??current.playerOdds)};
     for(const m of ['新','旧','港']) settings.odds[m]=this.core.validateOdds(input.odds?.[m]);
+    this.core.validatePlayerOddsSettings(settings.odds,settings.playerOdds);
     this.db.prepare('UPDATE settings SET revision=?,payload=? WHERE id=1').run(current.revision+1,JSON.stringify(settings));return this.settings();
   }
   addDraws(input,now=Date.now()) {

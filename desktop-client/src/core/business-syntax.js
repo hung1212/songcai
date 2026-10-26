@@ -2,7 +2,7 @@ import { ANIMALS, CN, MARKETS } from './rules.js';
 import {dottedAmounts,zodiacNumberAmounts,packageAmounts,perZodiacPackages} from './text-format.js';
 import { CATEGORY_ALIASES } from './classifications.js';
 
-export const PARSER_VERSION = 'parser-20261020-1';
+export const PARSER_VERSION = 'parser-20261022-1';
 export const COUNT_PATTERN = '(?:十[一二]?|[一二三四五六七八九两俩]|1[0-2]|[1-9])';
 const aliases = [];
 const add = (phrase, types, size, basis, canonical) => aliases.push({ phrase, types, size, basis, ...(canonical ? {canonical} : {}) });
@@ -15,6 +15,8 @@ for (let n = 1; n <= 12; n++) {
   for (const name of names) {
     add(`${name}肖中特`, ['special-zodiac-any'], n, '整项');
     if (n > 1) {
+      add(`${name}中肖`, ['linked-zodiac'], n, '每组', `${name}连肖`);
+      add(`平特复式${name}连肖`, ['linked-zodiac'], n, '每组', `复式${name}连肖`);
       // Compact compound-play titles must retain the current player, even
       // before a colon. Canonicalize before the parser consumes the play.
       for (const end of ['肖', '连肖']) add(`复${name}${end}`, ['linked-zodiac'], n, '每组', `${name}连肖`);
@@ -39,7 +41,8 @@ for (let n = 1; n <= 12; n++) {
   }
 }
 for (const phrase of ['特码', '特马', '单码', '单调']) add(phrase, ['special-number'], 1, '每号');
-for (const phrase of ['特肖', '独肖', '一肖', '1肖']) add(phrase, ['special-zodiac'], 1, '每肖');
+add('特肖', ['special-zodiac'], 1, '每肖');
+for (const phrase of ['独肖', '一肖', '1肖']) add(phrase, ['flat-zodiac'], 1, '每肖');
 for (const phrase of ['平特肖', '平特一肖', '平一肖', '平肖']) add(phrase, ['flat-zodiac'], 1, '每肖');
 for (const phrase of ['平码', '平特号码', '平特码']) add(phrase, ['flat-number'], 1, '每号');
 for (const phrase of ['平特尾', '平尾']) add(phrase, ['flat-tail'], 1, '每尾');
@@ -47,6 +50,7 @@ add('平特', ['flat-zodiac', 'flat-number', 'flat-tail'], 1);
 add('平特任中', ['flat-any']); add('任中', ['flat-any']);
 add('特串', ['special-pair'], 2, '每组');
 add('特碰', ['special-pair'], 2, '每组', '特串');
+add('特连', ['special-pair'], 2, '每组', '特串');
 for (const phrase of ['二中特', '两中特', '2中特']) add(phrase, ['linked-number-2-special'], 2, '每组');
 for (const [phrase, size] of [['二尾',2], ['两尾',2], ['三尾',3], ['四尾',4]]) add(phrase, ['linked-tail'], size, '每组');
 
@@ -78,7 +82,9 @@ export function playTokens(raw) {
   const tokens = [...view.text.matchAll(playRegex())].map(m => {
     const phrase=m[0].replace(/[ \t]/g,''), span=view.span(m.index,m.index+m[0].length);
     const perZodiac=packages.some(p=>m.index>=p.start&&m.index+m[0].length<=p.end)&&['一肖','1肖'].includes(phrase);
-    return {...definitions.get(phrase),...(perZodiac?{types:['special-number'],basis:'每号'}:{}),...span,quote:raw.slice(span.start,span.end),field:'play'};
+    const clause=view.text.slice(0,m.index).split(/[\n，,。;；]/).at(-1)+m[0]+view.text.slice(m.index+m[0].length).split(/[\n，,。;；]/)[0];
+    const explicitSpecial=['独肖','一肖','1肖'].includes(phrase)&&/(?<!平)特\s*肖/.test(clause);
+    return {...definitions.get(phrase),...(explicitSpecial?{types:['special-zodiac']}:{}),...(perZodiac?{types:['special-number'],basis:'每号'}:{}),...span,quote:raw.slice(span.start,span.end),field:'play'};
   });
   // T: is a special-number label, not a new sender. Keep the boundary so
   // letters inside real names (Tom, Matt, etc.) never become play evidence.
@@ -119,8 +125,8 @@ export function explicitIssueTokens(raw) {
     return {...span,field:'issue',quote:raw.slice(span.start,span.end),ruleId:'R44'};
   });
 }
-export const COURTESY_PATTERN=/谢谢老板|谢谢|辛苦了|辛苦|麻烦你|麻烦|请帮我|帮我|收到|好的|好嘞|您好|你好|晚安|早上好|晚上好|祝好运/g;
-const businessCharacters=new Set([...aliases.map(a=>a.phrase).join(''),...CATEGORY_ALIASES.map(c=>c.alias).join(''),...ANIMALS.join(''),...CN,...'三两二边新老旧港香港澳门澳奥噢凹红蓝绿金木水火土大小单双合头尾特彩菜复式拖每各个号数字肖组注元米块斤钱买下落加第期']);
+export const COURTESY_PATTERN=/谢谢老板|谢谢|辛苦了|辛苦|麻烦你|麻烦|请帮我|帮我|收到|好的|好嘞|您好|你好|晚安|早上好|晚上好|祝好运|另外(?=\s*包)/g;
+const businessCharacters=new Set([...aliases.map(a=>a.phrase).join(''),...CATEGORY_ALIASES.map(c=>c.alias).join(''),...ANIMALS.join(''),...CN,...'三两二边新老旧港香港澳门澳奥噢凹红蓝绿金木水火土大小单双合头尾特彩菜复式拖串对打每各个号数字肖组注元米块斤钱买下落加第期']);
 export function marketInfo(input) {
   const found=new Set();
   const text=input.replace(marketPattern,token=>{
@@ -154,7 +160,7 @@ function businessPrefix(name) {
     const issue=rest.match(new RegExp('^'+ISSUE_PATTERN_SOURCE));
     const market=rest.match(new RegExp('^(?:'+marketPattern.source+'|澳门|奥门|澳|奥)'));
     const selection=rest.match(selectionPrefix);
-    const other=rest.match(new RegExp(`^(?:拖|复式|复试|复实|每号|各号|每肖|各肖|每组|各组|各|每|数|号码|数字|特|彩|菜|[${CN}]+(?:连|肖|友|有)|[元米块斤钱])`));
+    const other=rest.match(new RegExp(`^(?:拖|串|对打|复式|复试|复实|每号|各号|每肖|各肖|每组|各组|各|每|数|号码|数字|特|彩|菜|[${CN}]+(?:连|肖|友|有)|[元米块斤钱])`));
     const token=p?.quote||market?.[0]||issue?.[0]||selection?.[0]||other?.[0];
     if(!token)return false;
     meaningful=true;rest=rest.slice(token.length);
@@ -177,7 +183,7 @@ export function statementEvidence(raw) {
   const issue=leadingIssuePrefix(raw);if(issue)tokens.push(issue);
   const basis=/各(?:个?(?:号码?|数字|数)|肖|尾|组|注)?|每(?:个?(?:号码?|数字|数)|肖|尾|组|注|个)|整项/g;
   for(const m of view.text.matchAll(basis)){const span=view.span(m.index,m.index+m[0].length);tokens.push({...span,quote:raw.slice(span.start,span.end),field:'basis'});}
-  const amount=/(?:各(?:号|肖|尾|组|注)?|每(?:号|肖|尾|组|注)?|组|买|下|落|加|=)\s*([\d零〇一二三四五六七八九十百千万两壹贰貳叁參肆伍陆陸柒捌玖拾佰仟萬]+(?:\.\d{1,2})?)|([\d零〇一二三四五六七八九十百千万两壹贰貳叁參肆伍陆陸柒捌玖拾佰仟萬]+(?:\.\d{1,2})?)\s*(?:[元米块斤钱圆圓]|(?=[\s。.,，#＃;；]*$))/g;
+  const amount=/(?:各(?:号|肖|尾|组|注)?|每(?:号|肖|尾|组|注)?|个(?:号码?|数字|数)|组|买|下|落|加|=)\s*([\d零〇一二三四五六七八九十百千万两壹贰貳叁參肆伍陆陸柒捌玖拾佰仟萬]+(?:\.\d{1,2})?)|([\d零〇一二三四五六七八九十百千万两壹贰貳叁參肆伍陆陸柒捌玖拾佰仟萬]+(?:\.\d{1,2})?)\s*(?:[元米块斤钱圆圓]|(?=[\s。.,，#＃;；]*$))/g;
   for(const m of view.text.matchAll(amount)) {
     const quote=m[1]||m[2],start=m.index+m[0].indexOf(quote),span=view.span(start,start+quote.length);
     if(!tokens.some(t=>['play','issue'].includes(t.field)&&t.start<span.end&&span.start<t.end))tokens.push({...span,quote:raw.slice(span.start,span.end),field:'amount'});

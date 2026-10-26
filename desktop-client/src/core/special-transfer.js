@@ -5,6 +5,7 @@ import { effectivePlayerOdds, validatePlayerOdds } from './player-odds.js';
 import { payoutForStake } from './settlement.js';
 import { withRebates } from './rebates.js';
 import { ledgerOwnerSettings } from './ledger-owner.js';
+import { numberDistribution } from './number-distribution.js';
 
 export const SPECIAL_TRANSFER_TERMS = Object.freeze({ rate: 47.3, rebatePercent: 3.3, unitYuan: 1 });
 const PAYOUT = 4730n; // Cents returned for one yuan on the winning number.
@@ -51,14 +52,32 @@ export function optimizeSpecialTransfer(liabilityCents, netReceivedCents) {
 }
 
 function transferResult(liabilities, net, yuan) {
-  const totalYuan = sum(yuan), rebate = (totalYuan*33n+5n)/10n;
-  const profits = liabilities.map((l,i)=>net-l-totalYuan*100n+rebate+PAYOUT*yuan[i]);
+  return transferCentResult(liabilities,net,yuan.map(n=>n*100n));
+}
+
+// Average excess uses the same cent-rounded amount shown on the number card.
+// Counterparty payout rounds once for the winning number; its rebate rounds
+// once on the entire outgoing stake, just like the integer-yuan scenarios.
+function transferCentResult(liabilities, net, transfers) {
+  const total=sum(transfers),rebate=(total*33n+500n)/1000n;
+  const payouts=transfers.map(n=>(PAYOUT*n+50n)/100n);
+  const profits=liabilities.map((l,i)=>net-l-total+rebate+payouts[i]);
   return {
-    transferCents: yuan.map(n=>safe(n*100n)), totalCents: safe(totalYuan*100n),
+    transferCents: transfers.map(safe), totalCents: safe(total),
     rebateCents: safe(rebate), profitCents: profits.map(safe),
     worstProfitCents: safe(profits.reduce((a,b)=>a<b?a:b)),
     bestProfitCents: safe(profits.reduce((a,b)=>a>b?a:b)),
   };
+}
+
+export function averageExcessSpecialTransfer(numberStakeCents, liabilityCents, netReceivedCents) {
+  if(numberStakeCents.length!==49||liabilityCents.length!==49)throw new Error('转出方案需要完整的49个号码');
+  const liabilities=liabilityCents.map(cents);
+  if(!Number.isSafeInteger(netReceivedCents))throw new Error('实收金额无效');
+  const distribution=numberDistribution(numberStakeCents.map((value,i)=>({number:i+1,cents:value})));
+  const transfers=distribution.numbers.map(n=>BigInt(n.excessCents));
+  return {...transferCentResult(liabilities,BigInt(netReceivedCents),transfers),
+    averageCents:distribution.averageCents,transferNumberCount:transfers.filter(n=>n>0n).length,unitYuan:0.01};
 }
 
 // Every minimal allocation has a residual cap L[i] - 4730*x[i]. Group these
@@ -148,6 +167,7 @@ export function specialTransferScenarios(book, custom={mode:'loss',percent:'5'})
   };
   const plans=[
     {...stats(transferResult(liabilities.map(BigInt),BigInt(net),Array(49).fill(0n))),id:'none',label:'不转出',feasible:true},
+    {...stats(averageExcessSpecialTransfer(book.numbers.map(n=>n.cents),liabilities,net)),id:'average-excess',label:'超出平均转出',feasible:true},
     targetPlan('loss-5','loss','5'),targetPlan('loss-2','loss','2'),targetPlan('break-even','profit','0'),
     targetPlan('profit-0.5','profit','0.5'),targetPlan('profit-1','profit','1'),
     {...stats(book),id:'maximin',label:'原稳定方案',feasible:true},
@@ -169,7 +189,7 @@ function periodForBet(doc, bet, market) {
 }
 
 export function specialTransferPlan(documents, settings, { date, market } = {}) {
-  if (!date || !MARKETS.includes(market)) throw new Error('请选择单个业务日期和市场，再查看稳定转出方案');
+  if (!date || !MARKETS.includes(market)) throw new Error('请选择单个业务日期和市场，再查看转出方案');
   if (!settings?.odds?.[market]) throw new Error('正在加载玩家赔率与退水设置');
   settings = ledgerOwnerSettings(documents,settings);
   const collection = specialCollection(documents, {date,market});

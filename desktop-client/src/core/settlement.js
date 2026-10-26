@@ -5,11 +5,11 @@ import {rebatePlayKey} from './rebate-plays.js';
 import {ledgerOwnedDocument,ledgerOwnerSettings} from './ledger-owner.js';
 export { validateRebates } from './rebates.js';
 
-export const SETTLEMENT_VERSION = 'songcai-settlement-3';
-import {validateOdds} from './odds.js';
+export const SETTLEMENT_VERSION = 'songcai-settlement-4';
+import {validateOdds,TWO_NUMBER_SPECIAL_RATE,TWO_NUMBER_SPECIAL_TOGGLE} from './odds.js';
 import {effectivePlayerOdds,validatePlayerOdds} from './player-odds.js';
-export {RATE_ROWS,defaultOdds,validateOdds} from './odds.js';
-export {validatePlayerOdds} from './player-odds.js';
+export {RATE_ROWS,defaultOdds,validateOdds,withOptionalOdds} from './odds.js';
+export {validatePlayerOdds,validatePlayerOddsSettings} from './player-odds.js';
 function choose(n,k) { if (k<0||n<k) return 0n; let result=1n; for(let i=1;i<=k;i++) result=result*BigInt(n-i+1)/BigInt(i); return result; }
 function asSafe(value) { if(value>BigInt(Number.MAX_SAFE_INTEGER)||value<BigInt(-Number.MAX_SAFE_INTEGER)) throw new Error('赔付金额超出精确计算范围'); return Number(value); }
 export function payoutForStake(cents, rate, includePrincipal) {
@@ -58,7 +58,10 @@ export function settleBet(bet, drawInput, rawOdds, now = Date.now(), options = {
         if(t==='linked-zodiac') {
           const winners=choose(h,size), has=values.includes(yearAnimal)&&present.has(yearAnimal); const specialWinners=has?choose(h-1,size-1):0n;
           add(required,winners-specialWinners); add(required,specialWinners,true);
-        } else if(t==='linked-tail'||t==='linked-number-3-3'||t==='linked-number-2-2') add(required,choose(h,size));
+        } else if(t==='linked-number-2-2') {
+          add(required,choose(h,2));
+          if(odds[TWO_NUMBER_SPECIAL_TOGGLE]&&values.includes(special))add(TWO_NUMBER_SPECIAL_RATE,BigInt(h));
+        } else if(t==='linked-tail'||t==='linked-number-3-3') add(required,choose(h,size));
         else if(t==='not-hit') add(required,choose(n-h,size));
         else if(t==='flat-any') add(required,choose(n,size)-choose(n-h,size));
         else if(t==='linked-number-3-2') {add('three-two',choose(h,2)*choose(n-h,1));add('three-three',choose(h,3));}

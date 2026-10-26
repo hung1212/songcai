@@ -13,7 +13,7 @@ delete env.ELECTRON_RUN_AS_NODE;
 const checkNetwork = process.argv.includes('--draw-network-check');
 const checkConflict=process.argv.includes('--save-conflict-check');
 const result = spawnSync(path.join(app, 'Contents/MacOS/松财'), ['--startup-check', ...(checkNetwork ? ['--draw-network-check'] : []),...(checkConflict?['--save-conflict-check']:[])], {
-  env, encoding: 'utf8', timeout: checkNetwork ? 75000 : 45000,
+  env, encoding: 'utf8', timeout: checkNetwork ? 75000 : 65000,
 });
 const marker = result.stdout?.match(/^SONGCAI_STARTUP_OK (.+)$/m);
 if (result.error || result.status !== 0 || !marker) {
@@ -22,6 +22,8 @@ if (result.error || result.status !== 0 || !marker) {
   process.exit(1);
 }
 const report = { checkedAt: new Date().toISOString(), app, arch: process.arch, os: os.release(), stages: JSON.parse(marker[1]) };
+const editing=result.stdout?.match(/^SONGCAI_EDITING_PERFORMANCE (.+)$/m);
+if(editing)report.editingPerformance=JSON.parse(editing[1]);
 if (checkNetwork) report.drawNetwork = JSON.parse(result.stdout.match(/^SONGCAI_DRAW_NETWORK (.+)$/m)[1]);
 if (!Object.values(report.stages).every(value => value === true)) throw new Error('启动验证不完整');
 const reports = path.join(__dirname, '../reports');

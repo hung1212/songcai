@@ -1,19 +1,23 @@
 <script setup>
-import { computed, nextTick, onMounted, onBeforeUnmount, ref, watch, provide } from 'vue';
+import { computed, nextTick, onMounted, onBeforeUnmount, ref, shallowRef, watch, provide } from 'vue';
 import { parseDocument, summarize } from './core/parser.js';
-import { ledgerOwnedDocument } from './core/ledger-owner.js';
+import { ledgerOwnedDocument, ledgerOwner } from './core/ledger-owner.js';
 import { combinationPreview, formatMoney, MARKETS, pad, ruleForDate, today } from './core/rules.js';
 import {SPACE_CONTEXT,spaceKey,spaceSession} from './space-context.js';
 import { demoText, makeDocument } from './demo.js';
 import { STORAGE_KEY, validateProject } from './project.js';
 import { canonicalLedger, ledgerTitle, ledgerSnapshotKey, ledgerParseKey, reorderDocuments } from './core/ledger.js';
 import {formatBetLines,prepareBetPaste} from './core/text-format.js';
-import { highlightText } from './core/highlight.js';
+import {createEditorHighlighter} from './core/editor-highlight.js';
+import {createParseCache} from './core/parse-cache.js';
+import {createParseWorker} from './parse-worker-client.js';
 import { numberDistribution, sortDistribution, NUMBER_SORTS } from './core/number-distribution.js';
 import ReferencePages from './components/ReferencePages.vue';
 import WechatInbox from './components/WechatInbox.vue';
 import SettlementPage from './components/SettlementPage.vue';
 import SpecialCollection from './components/SpecialCollection.vue';
+import SpecialTransferPanel from './components/SpecialTransferPanel.vue';
+import {specialCollection} from './core/special-collection.js';
 import FlatZodiacCollection from './components/FlatZodiacCollection.vue';
 import LedgerWinnings from './components/LedgerWinnings.vue';
 import {upgradeProject,upgradeComparison} from './core/parser-upgrade.js';
@@ -23,12 +27,12 @@ import {useLedgerOverview} from './use-ledger-overview.js';
 import RebateSettings from './components/RebateSettings.vue';
 import {clearPreviewState,clearPreviewContents,restorePreviewContents} from './ledger-clear-preview.js';
 import {documentReviewKey} from './core/ai-review.js';
-import {issueDetails} from './core/issue-details.js';
+import {issueDetails,groupIssues} from './core/issue-details.js';
 import {settleDocuments} from './core/settlement.js';
 import {settlementBalance} from './core/ledger-overview.js';
 import {winningLineMarks,drawBasisLabel} from './core/winning-display.js';
 import {NAVIGATION_KEY,navigationHistory,visitLedger,rememberSearch,sourceSelection,sourceOffsets,sourceResults} from './core/ledger-navigation.js';
-import {WORKSPACE_KEY,workspacePreferences,sortLedgers,highlightRows,editorPosition} from './core/workspace.js';
+import {WORKSPACE_KEY,workspacePreferences,sortLedgers,editorPosition} from './core/workspace.js';
 
 const props=defineProps({space:Object,api:Object,initialView:{type:String,default:'ledger'},switching:Boolean});
 const context={id:props.space.id,get name(){return props.space.name;},api:props.api};
@@ -38,7 +42,9 @@ const songcai=props.api;
 const storageKey=spaceKey(STORAGE_KEY,context.id),navigationKey=spaceKey(NAVIGATION_KEY,context.id),workspaceKey=spaceKey(WORKSPACE_KEY,context.id);
 const emptyDocument=makeDocument('','',today());
 const documents=ref([]),activeId=ref('');
-const results = ref([]), parsedKeys = ref({});
+const results = shallowRef([]), parsedKeys = shallowRef({});
+const parseCache=createParseCache(),parseWorker=createParseWorker();
+let parseGeneration=0,backgroundBusy=false,backgroundAgain=false;
 const {overview,loaded:overviewLoaded,busy:overviewBusy,problem:overviewError,mode:overviewMode,drawDate:overviewDate,selection:overviewSelection,verification:overviewVerification,draws:overviewDraws,latest:overviewLatest,refresh:refreshOverview,changeMode:changeOverviewMode,adopt:adoptOverview,select:selectOverview}=useLedgerOverview(results,()=>documents.value,context);
 const settlementView=ref(),winningsView=ref(),rebateView=ref(),rebateOpened=ref(props.initialView==='rebates');
 const clearDialog=ref(),clearBusy=ref(false),clearBackup=ref(null);let clearExpected='';
@@ -126,6 +132,7 @@ const settlementOpened = ref(props.initialView==='settlement');
 const inboxView = ref();
 const scope = ref('current'), expanded = ref(''), saveState = ref('准备就绪'), notice = ref('');
 const editor = ref(), highlightLayer = ref(), lineNumbers = ref(), inputFile = ref(), composing = ref(false), initialized = ref(false);
+const highlightMatchesSource = ref(true), plainEditor = ref(false);
 let savedWorkspace;
 try { const local=JSON.parse(localStorage.getItem(workspaceKey)||'null');const shared=JSON.parse(localStorage.getItem('songcai.workspace.shared.v1')||localStorage.getItem(WORKSPACE_KEY)||'null');savedWorkspace={...local,...shared,ledgerSort:local?.ledgerSort}; } catch {}
 const workspace = ref(workspacePreferences(savedWorkspace));
@@ -135,7 +142,7 @@ const editorPositions = spaceSession(context.id).editors, rowHeights = ref([]);
 let editorObserver, resizePointer, switchRequest=0;
 const currentSummary = computed(()=>{try{return summarize(results.value.filter(result=>result.id===activeId.value));}catch{return null;}});
 const ledgerAmounts = computed(()=>Object.fromEntries(results.value.map(result=>[result.id,(()=>{try{return summarize([result]).totalCents;}catch{return null;}})()])));
-const pendingById = computed(()=>Object.fromEntries(results.value.map(result=>[result.id,result.issues.filter(i=>i.severity!=='warning').length])));
+const pendingById = computed(()=>Object.fromEntries(results.value.map(result=>[result.id,groupIssues(result.issues).filter(i=>i.severity!=='warning').length])));
 watch(workspace,value=>{try{localStorage.setItem(workspaceKey,JSON.stringify(value));const {ledgerSort,...shared}=value;localStorage.setItem('songcai.workspace.shared.v1',JSON.stringify(shared));}catch{}},{deep:true});
 watch(()=>workspace.value.ledgerSort,endDocumentDrag);
 function rememberEditor(id=activeId.value){
@@ -172,7 +179,14 @@ function stopSidebar(){const pointer=resizePointer;resizePointer=null;if(pointer
 function measureEditor(){
   const field=editor.value,layer=highlightLayer.value;if(!field||!layer||composing.value)return;
   layer.style.width=field.clientWidth+'px';
-  rowHeights.value=effectiveWrap.value?[...layer.children].slice(0,10000).map(row=>row.getBoundingClientRect().height):[];
+  // Never make the real input transparent when the decoration is incomplete.
+  const lines=field.value.split('\n');
+  highlightMatchesSource.value=layer.children.length===lines.length&&lines.every((line,i)=>layer.children[i].textContent===(line||' '));
+  layer.style.minHeight=field.scrollHeight+'px';
+  layer.parentElement.style.height=field.clientHeight+'px';
+  if(lineNumbers.value)lineNumbers.value.style.paddingBottom=(28+field.offsetHeight-field.clientHeight)+'px';
+  const heights=effectiveWrap.value?[...layer.children].slice(0,10000).map(row=>row.getBoundingClientRect().height):[];
+  if(heights.length!==rowHeights.value.length||heights.some((height,i)=>height!==rowHeights.value[i]))rowHeights.value=heights;
   syncEditorScroll();
 }
 function observeEditor(){editorObserver?.disconnect();if(editor.value){editorObserver=new ResizeObserver(measureEditor);editorObserver.observe(editor.value);}measureEditor();}
@@ -208,12 +222,27 @@ const account = computed(() => {
 });
 const summary = computed(() => account.value.summary);
 const distribution = computed(() => numberDistribution(summary.value.numbers));
+// Financial identity follows the ledger title, just like the displayed distribution.
+const numberTransferDocuments=computed(()=>scoped.value.filter(d=>!player.value||ledgerOwner(d).id===player.value));
+const numberTransferDates=computed(()=>[...new Set(numberTransferDocuments.value.map(d=>d.rule?.date).filter(Boolean))]);
+const numberTransferDate=computed(()=>numberTransferDates.value.length===1?numberTransferDates.value[0]:'');
+const numberTransferScope=computed(()=>player.value?allPlayers.value.find(p=>p.id===player.value)?.name||player.value:scope.value==='all'?'全部账目':ledgerTitle(active.value));
+const numberTransferError=computed(()=>{
+  const selected=documents.value.filter(d=>scope.value==='all'||d.id===active.value.id).filter(d=>!player.value||ledgerOwner(d).id===player.value);
+  if(selected.some(d=>parsedKeys.value[d.id]!==ledgerParseKey([d])))return '投注原文正在更新，解析完成后自动重算转出方案。';
+  if(numberTransferDates.value.length>1)return '当前范围包含多个业务日期，请切换到单个日期的账目后查看转出方案。';
+  return '';
+});
+function prepareNumberTransfer(){
+  if(!market.value){const amounts=specialCollection(numberTransferDocuments.value).summary.markets;market.value=[...MARKETS].sort((a,b)=>amounts[b]-amounts[a])[0];}
+  if(!overviewLoaded.value)refreshOverview();
+}
 const numberSort = ref('number');
 const sortedNumbers = computed(() => sortDistribution(distribution.value.numbers, rule.value, numberSort.value));
 const numberSortHint = computed(() => NUMBER_SORTS.find(option => option.value === numberSort.value)?.hint);
 const mixedZodiacYears = computed(() => scope.value === 'all' && scoped.value.some(result => result.rule && result.rule.lunarYear !== rule.value?.lunarYear));
 const allPlayers = computed(() => [...new Map(scoped.value.flatMap(r => r.bets.map(b => [b.playerId, {id:b.playerId,name:b.player}]))).values()].sort((a,b)=>a.name.localeCompare(b.name,'zh-CN')));
-const issues = computed(() => scoped.value.flatMap(r => r.issues).filter(i => !player.value || (i.playerId || i.player) === player.value));
+const issues = computed(() => groupIssues(scoped.value.flatMap(r => r.issues).filter(i => !player.value || (i.playerId || i.player) === player.value)));
 const errors = computed(() => issues.value.filter(i => i.severity !== 'warning'));
 const confirmed = computed(() => scoped.value.flatMap(r => r.bets).filter(b => b.status === 'parsed' && (!market.value || b.markets.includes(market.value)) && (!player.value || b.playerId === player.value)));
 const visibleBets = computed(() => confirmed.value.filter(b => !search.value || `${b.player} ${b.raw} ${b.play}`.includes(search.value)));
@@ -225,8 +254,8 @@ const snapshotKey = computed(() => ledgerSnapshotKey({ activeId: activeId.value,
 const parseKey = computed(() => ledgerParseKey(documents.value));
 const titleInput = computed({ get: () => active.value.autoTitle ? '' : active.value.name, set: name => { active.value.name = name; active.value.autoTitle = !name.trim(); } });
 const highlightEnabled = computed(() => active.value.text.length <= 200_000);
-const highlighted = computed(() => highlightEnabled.value ? highlightText(active.value.text,active.value.defaultPlayer,activeParseFresh.value?(currentResult.value?.bets||[]).filter(b=>b.status==='parsed'&&['special-number','flat-number','linked-number-3-3'].includes(b.playType)&&b.endLine>b.line).flatMap(b=>Array.from({length:b.endLine-b.line},(_,i)=>b.line+i)):[]) : []);
-const sourceRows = computed(()=>highlightRows(highlighted.value));
+const highlightEditor=createEditorHighlighter();
+const sourceRows = computed(() => highlightEnabled.value ? highlightEditor(active.value.text,active.value.defaultPlayer,activeParseFresh.value?(currentResult.value?.bets||[]).filter(b=>b.status==='parsed'&&['special-number','flat-number','linked-number-3-3'].includes(b.playType)&&b.endLine>b.line).flatMap(b=>Array.from({length:b.endLine-b.line},(_,i)=>b.line+i)):[]) : []);
 const effectiveWrap = computed(()=>workspace.value.wrap&&highlightEnabled.value);
 watch([sourceRows,()=>workspace.value.fontSize,effectiveWrap],()=>nextTick(measureEditor));
 const countIssues = computed(() => errors.value.length);
@@ -251,12 +280,16 @@ async function locateResults(line=editorLines.value.line,endLine=editorLines.val
     await nextTick();scrollResultTo([...document.querySelectorAll('.bet-row')].find(e=>e.dataset.betId===target.id));
   }else{
     const target=matches.issues[0];if(!target)return;
-    issueLimit.value=Math.max(150,issues.value.findIndex(i=>i.id===target.id)+1);await nextTick();
-    scrollResultTo([...document.querySelectorAll('.issue-card')].find(e=>e.dataset.issueId===target.id));
+    const group=issues.value.find(i=>i.memberIds.includes(target.id));
+    issuePage.value=Math.floor(Math.max(0,issues.value.indexOf(group))/ISSUE_PAGE_SIZE)+1;await nextTick();
+    scrollResultTo([...document.querySelectorAll('.issue-card')].find(e=>e.dataset.issueId===group?.id));
   }
 }
-const issueLimit=ref(150);
-const visibleIssues = computed(() => issues.value.slice(0,issueLimit.value).map(issue=>({...issue,detail:issueDetails(issue)})));
+const ISSUE_PAGE_SIZE=30,issuePage=ref(1);
+const issuePageCount=computed(()=>Math.max(1,Math.ceil(issues.value.length/ISSUE_PAGE_SIZE)));
+watch([player,scope],()=>{issuePage.value=1;});
+watch(issuePageCount,count=>{issuePage.value=Math.min(issuePage.value,count);});
+const visibleIssues = computed(() => issues.value.slice((issuePage.value-1)*ISSUE_PAGE_SIZE,issuePage.value*ISSUE_PAGE_SIZE).map(issue=>({...issue,detail:issueDetails(issue)})));
 const marketClass = m => ({ 新: 'new', 旧: 'old', 港: 'hk' }[m]);
 const money = cents => formatMoney(cents);
 
@@ -266,17 +299,38 @@ let disposed=false;
 async function applyAssistance(id,sourceKey,assistance){
   if(disposed)return false;
   const doc=documents.value.find(d=>d.id===id);if(clearBusy.value||!doc||documentReviewKey(doc)!==sourceKey)return false;
-  doc.assistance=assistance;parseAll();await saveDraft(true);return true;
+  doc.assistance=assistance;await parseInBackground();await saveDraft(true);return true;
+}
+function commitParse() {
+  const next=parseCache.read(documents.value);
+  results.value=next.results;parsedKeys.value=next.keys;parsing.value=false;
 }
 function parseAll() {
+  clearTimeout(parseTimer);parseGeneration++;backgroundAgain=false;
+  commitParse();
+}
+async function parseInBackground() {
   clearTimeout(parseTimer);
-  parsing.value = true;
-  results.value = documents.value.map(doc => {
-    try { return parseDocument(doc.text, { ...doc }); }
-    catch (e) { return { id: doc.id, name: doc.name, bets: [], metadata: [], coverage: [], issues: [{ id: `${doc.id}:fatal`, fileId: doc.id, fileName: doc.name, line: 1, endLine: 1, raw: '', player: '', severity: 'error', code: 'DOCUMENT', message: e.message }] }; }
-  });
-  parsedKeys.value=Object.fromEntries(documents.value.map(doc=>[doc.id,ledgerParseKey([doc])]));
-  parsing.value = false;
+  if(disposed||composing.value)return;
+  if(backgroundBusy){backgroundAgain=true;return;}
+  const missing=parseCache.missing(documents.value);
+  if(!missing.length){commitParse();return;}
+  const generation=++parseGeneration,key=parseKey.value;
+  const snapshot=JSON.parse(JSON.stringify(missing));
+  backgroundBusy=true;backgroundAgain=false;parsing.value=true;
+  try {
+    const parsed=await parseWorker.run(snapshot);
+    if(disposed||composing.value||generation!==parseGeneration||key!==parseKey.value)return;
+    parseCache.accept(snapshot,parsed);commitParse();
+  } catch(error) {
+    if(!disposed&&generation===parseGeneration&&key===parseKey.value&&!composing.value){
+      // Keep the accounting usable if a platform cannot start a Web Worker.
+      parseAll();
+    }
+  } finally {
+    backgroundBusy=false;
+    if(!disposed&&backgroundAgain&&!composing.value){clearTimeout(parseTimer);parseTimer=setTimeout(parseInBackground,300);}
+  }
 }
 async function saveDraft(requireSuccess = false) {
   clearTimeout(saveTimer);
@@ -305,7 +359,7 @@ async function saveDraft(requireSuccess = false) {
 }
 watch(()=>documents.value.length,count=>emit('count',count));
 watch(parseKey, () => {
-  if (!composing.value) { clearTimeout(parseTimer); parseTimer = setTimeout(parseAll, 300); }
+  if (!composing.value) { clearTimeout(parseTimer); parseTimer = setTimeout(parseInBackground, 300); }
 });
 watch(snapshotKey, value => {
   clearTimeout(saveTimer);
@@ -316,7 +370,7 @@ watch(snapshotKey, value => {
 });
 watch([market, player, search, activeId, scope], () => { page.value = 1; });
 watch(activeId, (id,previous) => {
-  rememberEditor(previous);market.value='';player.value='';expanded.value='';ledgerSettings.value=false;linkedSource.value=null;editorLines.value={line:1,endLine:1};issueLimit.value=150;if(initialized.value)recordVisit(id);
+  rememberEditor(previous);market.value='';player.value='';expanded.value='';ledgerSettings.value=false;linkedSource.value=null;editorLines.value={line:1,endLine:1};issuePage.value=1;if(initialized.value)recordVisit(id);
   const source=active.value.text;
   nextTick(()=>{if(activeId.value===id){observeEditor();if(active.value.text===source)restoreEditor();}});
 });
@@ -327,7 +381,9 @@ onMounted(async () => {
     if (raw?.loadError) { loadFailed = true; toast(raw.loadError); }
     else if (raw) { const p = upgradeProject(validateProject(raw)); storageRevision = raw.storageRevision || 0; lastSaved = ledgerSnapshotKey(p); documents.value = p.documents; activeId.value = p.activeId; }
   } catch (e) { loadFailed = true; toast(`账目恢复失败：${e.message}`); }
-  parseAll(); initialized.value = true;recordVisit();
+  if(songcai?.reportStartup)parseAll();else await parseInBackground();
+  if(disposed)return;
+  initialized.value = true;recordVisit();
   await nextTick();observeEditor();restoreEditor();window.addEventListener('keydown',workspaceKeydown);window.addEventListener('pointerdown',closeWorkspaceMenus);
   try{clearBackup.value=songcai?await songcai.clearLedgerState():clearPreviewState(context.id);}catch(e){toast(e.message);}
   refreshOverview(['collection','flatZodiac'].includes(view.value)?{sync:!!songcai&&!songcai.reportStartup,latest:true,auto:true}:{});
@@ -524,6 +580,15 @@ onMounted(async () => {
       &&currentResult.value.bets[0].markets.join()==='新'&&currentResult.value.bets[0].totalCents===5000
       &&document.querySelector('.entry-heading .entry-total')?.textContent==='¥50.00'
       &&[...document.querySelectorAll('.highlight-viewport .token-play')].some(t=>t.textContent==='平特一肖');
+    active.value.text='蛇一肖3000米\n独肖马50米\n特肖牛100米';parseAll();await nextTick();await locateResults(1,3);
+    const bareSingleZodiacUI=currentResult.value.issues.length===0
+      &&JSON.stringify(currentResult.value.bets.map(b=>[b.playType,b.totalCents]))===JSON.stringify([['flat-zodiac',300000],['flat-zodiac',5000],['special-zodiac',10000]])
+      &&document.querySelector('.entry-heading .entry-total')?.textContent==='¥3,150.00'
+      &&['一肖','独肖'].every(word=>[...document.querySelectorAll('.highlight-viewport .token-play')].some(t=>t.textContent===word));
+    active.value.text='37对龙各20\n特串37对龙10\n新特连02.26.串35.23.38.各10\n14.26.19.31.21.33个号一百特。14.26..19.31.21.33个复式二连一组一百。14.26.19.31.33.21复试一组二十特串';parseAll();await nextTick();await locateResults(1,4);
+    const defaultAuditParsingUI=currentResult.value.issues.length===0
+      &&JSON.stringify(currentResult.value.bets.map(b=>[b.playType,b.count,b.totalCents]))===JSON.stringify([['linked-number-2-2',4,8000],['special-pair',4,4000],['special-pair',6,6000],['special-number',6,60000],['linked-number-2-2',15,150000],['special-pair',15,30000]])
+      &&document.querySelector('.entry-heading .entry-total')?.textContent==='¥2,580.00';
     active.value.text='二中二30拖鼠各10';parseAll();await nextTick();await locateResults(1,1);
     expanded.value=currentResult.value.bets[0]?.id;await nextTick();
     const zodiacDragUI=currentResult.value.issues.length===0&&currentResult.value.bets.length===1
@@ -533,6 +598,85 @@ onMounted(async () => {
       &&document.querySelector('.drag-note')?.textContent.includes('分别搭配07、19、31、43，共4组')
       &&document.querySelectorAll('.bet-expanded .combination-list span').length===4
       &&editor.value.value==='二中二30拖鼠各10';
+    active.value.text='新澳05-15-35-45拖19-39-25-13二中二各注5..';parseAll();await nextTick();await locateResults(1,1);
+    expanded.value=currentResult.value.bets[0]?.id;await nextTick();
+    const numberPoolDragUI=currentResult.value.issues.length===0&&currentResult.value.bets.length===1
+      &&currentResult.value.bets[0].playType==='linked-number-2-2'&&currentResult.value.bets[0].count===16
+      &&document.querySelector('.entry-heading .entry-total')?.textContent==='¥80.00'
+      &&document.querySelector('.bet-count')?.textContent.includes('16 组 × 5.00')
+      &&document.querySelector('.number-pool-drag-note')?.textContent.includes('05、15、35、45与19、39、25、13交叉配对，共16组，每组5.00元')
+      &&[...document.querySelectorAll('.bet-expanded .combination-list span')].map(el=>el.textContent).join('|')===[5,15,35,45].flatMap(a=>[19,39,25,13].map(b=>String(a).padStart(2,'0')+' · '+b)).join('|')
+      &&editor.value.value==='新澳05-15-35-45拖19-39-25-13二中二各注5..';
+    active.value.text='3.27串7.31二连一组100\n3.27串7.31特串100';parseAll();await nextTick();await locateResults(2,2);
+    expanded.value=currentResult.value.bets[1]?.id;await nextTick();
+    const specialPairNumberPoolUI=currentResult.value.issues.length===0&&currentResult.value.bets.length===2
+      &&currentResult.value.bets[0].playType==='linked-number-2-2'&&currentResult.value.bets[1].playType==='special-pair'
+      &&JSON.stringify(currentResult.value.bets[1].groups)==='[[3,7],[3,31],[27,7],[27,31]]'
+      &&currentResult.value.bets[1].totalCents===40000
+      &&document.querySelector('.entry-heading .entry-total')?.textContent==='¥800.00'
+      &&document.querySelector('.number-pool-drag-note')?.textContent.includes('03、27与07、31交叉配对，共4组，每组100.00元。每组一正码加一特码中奖，按特串赔率计算。')
+      &&[...document.querySelectorAll('.bet-expanded .combination-list span')].map(el=>el.textContent).join('|')==='03 · 07|03 · 31|27 · 07|27 · 31'
+      &&document.querySelector('.located-result .bet-description strong')?.textContent==='特串'
+      &&editor.value.value==='3.27串7.31二连一组100\n3.27串7.31特串100';
+    active.value.text='新澳特码11 12 24 32 34\n35 38 39 各30   26.36.42.48各15新二连07.19.43.31串17.25.01.37.02.各20';parseAll();await nextTick();await locateResults(1,2);
+    const reviewContinuationUI=currentResult.value.issues.length===0&&currentResult.value.bets.length===3
+      &&currentResult.value.bets[0].values.join()==='11,12,24,32,34,35,38,39'
+      &&currentResult.value.bets[0].unitCents===3000&&currentResult.value.bets[1].totalCents===6000
+      &&document.querySelector('.entry-total')?.textContent==='¥700.00'
+      &&document.querySelector('.continuation-note')?.textContent.includes('第1–2行')
+      &&[...document.querySelectorAll('.highlight-viewport .token-selection')].some(t=>t.textContent==='34');
+    active.value.text='3.27.串7.31二连一组1百.3.27串7.31一组一百特串。21.33.串8.32二连一组一百，21.33.串8.32特串。21.33.3.27.7.31.8.32个号一百特';
+    active.value.assistance=(await import('./core/ai-review.js')).assistanceFor(active.value,[{line:1,source:active.value.text,status:'pending',replacement:'',required:true}]);
+    parseAll();await nextTick();await locateResults(1,1,'issues');
+    const reviewMissingPriceUI=currentResult.value.bets.length===4&&currentResult.value.bets.every(b=>b.status==='parsed')
+      &&document.querySelector('.entry-total')?.textContent==='¥2,000.00'
+      &&document.querySelectorAll('.issue-card').length===1
+      &&document.querySelector('.issue-card')?.textContent.includes('不自动借用前笔金额');
+    active.value.assistance=null;active.value.text='新特鼠各号25。31=80';parseAll();await nextTick();await locateResults(1,1);
+    const reviewSpaceParsingUI=reviewContinuationUI&&reviewMissingPriceUI&&currentResult.value.issues.length===0
+      &&currentResult.value.bets.length===2&&currentResult.value.bets[1].values.join()==='31'
+      &&document.querySelector('.entry-total')?.textContent==='¥180.00';
+    active.value.text='鼠串狗各数5';parseAll();await nextTick();await locateResults(1,1);
+    const defaultDragUI=currentResult.value.issues.length===0&&currentResult.value.bets[0].count===16
+      &&document.querySelector('.entry-total')?.textContent==='¥80.00'
+      &&document.querySelector('.default-drag-note')?.textContent.includes('省略玩法按二中二');
+    active.value.text='香港三中三20-32-36#18-34-45各组50。三中三二中二20.32.36.18.34.45各5。合计275。';parseAll();await nextTick();
+    const structuredGroupsUI=currentResult.value.issues.length===0&&currentResult.value.bets[0].groups.length===2
+      &&document.querySelector('.entry-total')?.textContent==='¥275.00';
+    active.value.text='特肖牛二中二各10';
+    active.value.assistance=(await import('./core/ai-review.js')).assistanceFor(active.value,[{line:1,source:active.value.text,status:'pending',replacement:'',required:true}]);
+    parseAll();await nextTick();await locateResults(1,1,'issues');
+    const groupedIssuesUI=currentResult.value.issues.length===2&&issues.value.length===1
+      &&document.querySelectorAll('.issue-card').length===1&&document.querySelector('.entry-pending')?.textContent.includes('待处理 1')
+      &&document.querySelector('.issue-card')?.classList.contains('located-result')
+      &&document.querySelector('.issue-card')?.textContent.includes('查看AI核验');
+    active.value.assistance=undefined;
+    let perNumberPackageUI=true;
+    for(const [text,total,unit] of [['包鸡每个号100','¥400.00','100.00'],['另外包鸡各号15米','¥60.00','15.00']]){
+      active.value.text=text;parseAll();await nextTick();await locateResults(1,1);
+      const bet=currentResult.value.bets[0];
+      perNumberPackageUI=perNumberPackageUI&&currentResult.value.issues.length===0&&currentResult.value.bets.length===1
+        &&bet?.playType==='special-number'&&bet.values.join(',')==='10,22,34,46'&&bet.count===4&&!bet.allocation
+        &&document.querySelector('.entry-heading .entry-total')?.textContent===total
+        &&document.querySelector('.bet-count')?.textContent.includes(`4 份 × ${unit}`)&&editor.value.value===text;
+    }
+    let zodiacNumberAndTailDragUI=true;
+    for(const sample of [
+      {text:'副号: 马串虎狗羊 二中二各50',count:60,unit:'50.00',total:'¥3,000.00',note:'.zodiac-number-drag-note',groups:[1,13,25,37,49].flatMap(a=>[5,17,29,41,9,21,33,45,12,24,36,48].map(b=>[a,b]))},
+      {text:'副号: 3尾串5尾各10',count:25,unit:'10.00',total:'¥250.00',note:'.tail-pool-drag-note',groups:[3,13,23,33,43].flatMap(a=>[5,15,25,35,45].map(b=>[a,b]))},
+      {text:'副号: 新澳，二连4串5尾各10元',count:5,unit:'10.00',total:'¥50.00',note:'.number-tail-drag-note',groups:[5,15,25,35,45].map(n=>[4,n])},
+    ]){
+      active.value.text=sample.text;parseAll();await nextTick();await locateResults(1,1);
+      expanded.value=currentResult.value.bets[0]?.id;await nextTick();
+      const bet=currentResult.value.bets[0];
+      zodiacNumberAndTailDragUI=zodiacNumberAndTailDragUI&&currentResult.value.issues.length===0&&currentResult.value.bets.length===1
+        &&bet?.play==='二中二'&&bet.player==='副号'&&bet.count===sample.count&&bet.warnings.length===0
+        &&document.querySelector('.entry-heading .entry-total')?.textContent===sample.total
+        &&document.querySelector('.bet-count')?.textContent.includes(`${sample.count} 组 × ${sample.unit}`)
+        &&document.querySelector(sample.note)?.textContent.includes('两个正码同时命中')
+        &&[...document.querySelectorAll('.bet-expanded .combination-list span')].map(el=>el.textContent).join('|')===sample.groups.map(g=>g.map(pad).join(' · ')).join('|')
+        &&editor.value.value===sample.text;
+    }
     active.value.text='二连肖牛羊、羊猪、羊兔、牛兔各30';parseAll();await nextTick();await locateResults(1,1);
     expanded.value=currentResult.value.bets[0]?.id;await nextTick();
     const zodiacDelimitedGroupsUI=currentResult.value.issues.length===0&&currentResult.value.bets.length===1
@@ -542,6 +686,15 @@ onMounted(async () => {
       &&[...document.querySelectorAll('.bet-expanded .combination-list span')].map(el=>el.textContent).join('|')==='牛 · 羊|羊 · 猪|羊 · 兔|牛 · 兔'
       &&!document.querySelector('.bet-expanded .warning-text')
       &&editor.value.value==='二连肖牛羊、羊猪、羊兔、牛兔各30';
+    active.value.text='马猴虎狗:猴鼠羊狗:四连肖各200米';parseAll();await nextTick();await locateResults(1,1);
+    expanded.value=currentResult.value.bets[0]?.id;await nextTick();
+    const zodiacColonGroupsUI=currentResult.value.issues.length===0&&currentResult.value.bets.length===1
+      &&currentResult.value.bets[0].groups?.length===2&&currentResult.value.bets[0].warnings.length===0
+      &&document.querySelector('.entry-heading .entry-total')?.textContent==='¥400.00'
+      &&document.querySelector('.bet-count')?.textContent.includes('2 组 × 200.00')
+      &&[...document.querySelectorAll('.bet-expanded .combination-list span')].map(el=>el.textContent).join('|')==='马 · 猴 · 虎 · 狗|猴 · 鼠 · 羊 · 狗'
+      &&!document.querySelector('.bet-expanded .warning-text')
+      &&editor.value.value==='马猴虎狗:猴鼠羊狗:四连肖各200米';
     active.value.text='二连肖马拖（兔羊猪虎鸡）各20';parseAll();await nextTick();await locateResults(1,1);
     expanded.value=currentResult.value.bets[0]?.id;await nextTick();
     const linkedZodiacDragUI=currentResult.value.issues.length===0&&currentResult.value.bets.length===1
@@ -742,6 +895,7 @@ onMounted(async () => {
     numberSort.value = 'zodiac'; await nextTick();
     const zodiacSortWorks = document.querySelector('.number-grid > div')?.dataset.number === '7'
       && document.querySelector('.number-grid .number-animal')?.textContent === '鼠';
+    const ledgerTransferUI=await (await import('./ledger-transfer-startup-check.js')).checkLedgerTransferUI({documents,activeId,scope,player,market,tab,numberSort,overviewLoaded,parseAll});
     const settlementAPI = songcai.settlement, settlementDate = '2026-10-05';
     const settlementConfig = (await settlementAPI.load({ date: settlementDate })).settings;
     if (!songcai.checkDrawNetwork) settlementConfig.sources.港 = []; 
@@ -922,8 +1076,10 @@ onMounted(async () => {
     const upgradeFixture=upgradeProject({schemaVersion:1,activeId:'upgrade-check',documents:[{id:'upgrade-check',name:'旧账',text:'旧 四肖中特：龙牛狗蛇200',businessDate:'2026-10-06',defaultPlayer:'',autoTitle:true}]}).documents[0];
     const upgradeCheck=upgradeComparison(upgradeFixture);
     songcai.reportStartup({
-      menMarketUI,multilineTriplesUI,equalitySubtotalUI,perZodiacStakeUI,specialTransferUI:await (await import('./special-transfer-startup-check.js')).checkSpecialTransferUI(),
-      receiptPlayStakesUI:await (await import('./receipt-play-stakes-startup-check.js')).checkReceiptPlayStakesUI(context),receiptNameUI:await (await import('./receipt-name-startup-check.js')).checkReceiptNameUI(context),compactLinkedZodiacUI:await (await import('./compact-linked-zodiac-startup-check.js')).checkCompactLinkedZodiacUI(context),rebateUI:await (await import('./rebate-startup-check.js')).checkRebateUI(context,originalProject,settlementInput),issueTitleRebateUI:await (await import('./issue-title-startup-check.js')).checkIssueTitleRebateUI(context),specialHighlightsUI,flatZodiacHighlightsUI,incrementalReviewUI:await (await import('./ai-cache-startup-check.js')).checkIncrementalReviewUI(),flatZodiacCollectionUI,ledgerProfitSortUI,paragraphMarketUI,perZodiacPackageUI,compactPerZodiacPackageUI,flatOneZodiacUI,zodiacDragUI,zodiacDelimitedGroupsUI,linkedZodiacDragUI,tripleZodiacDragUI,specialPairDragUI,specialPairCrossUI,specialPairZodiacDragUI,tailZodiacCrossUI,tailDragUI,numberCategoryPackageUI,headParityUI,issuePrefixUI,slashZodiacGroupsUI,flatAnySuffixUI,blankMarketResetUI,blankPlayResetUI,separatePriceLinesUI,reversedZodiacPackageUI,receiptDrawExportUI,marketDirectionUI,bareMacauMarketUI,zodiacPackageUI,hongKongHeadingUI,receiptCompactUI,receiptExportUI,receiptExampleUI,headerStakeUI,multilineNumbersUI,compactTailGroupsUI,defaultStakeBasisUI,adjacentSubtotalUI,inlineMarketSectionUI,marketPrefixResetUI,ledgerAmountSortUI,playOverviewUI:playOverviewUI&&playFilterUI,bidirectionalNavigation,navigationHistoryUI,winningsUI,ledgerClear:clearRestorePassed,ledgerOverview:overviewPassed,pasteEditor:pasteEditorPassed,editorMemory,pasteCheckDetail,
+      reviewSpaceParsingUI,defaultDragUI,structuredGroupsUI,groupedIssuesUI,perNumberPackageUI,zodiacNumberAndTailDragUI,zodiacColonGroupsUI,menMarketUI,multilineTriplesUI,equalitySubtotalUI,perZodiacStakeUI,specialTransferUI:await (await import('./special-transfer-startup-check.js')).checkSpecialTransferUI(),
+      editorVisibilityUI:await (await import('./editor-visibility-startup-check.js')).checkEditorVisibilityUI(),editingPerformanceUI:await (await import('./editing-performance-startup-check.js')).checkEditingPerformanceUI(),receiptPlayStakesUI:await (await import('./receipt-play-stakes-startup-check.js')).checkReceiptPlayStakesUI(context),receiptNameUI:await (await import('./receipt-name-startup-check.js')).checkReceiptNameUI(context),compactLinkedZodiacUI:await (await import('./compact-linked-zodiac-startup-check.js')).checkCompactLinkedZodiacUI(context),rebateUI:await (await import('./rebate-startup-check.js')).checkRebateUI(context,originalProject,settlementInput),issueTitleRebateUI:await (await import('./issue-title-startup-check.js')).checkIssueTitleRebateUI(context),specialHighlightsUI,flatZodiacHighlightsUI,incrementalReviewUI:await (await import('./ai-cache-startup-check.js')).checkIncrementalReviewUI(),flatZodiacCollectionUI,ledgerProfitSortUI,paragraphMarketUI,perZodiacPackageUI,compactPerZodiacPackageUI,flatOneZodiacUI,bareSingleZodiacUI,defaultAuditParsingUI,zodiacDragUI,numberPoolDragUI,specialPairNumberPoolUI,zodiacDelimitedGroupsUI,linkedZodiacDragUI,tripleZodiacDragUI,specialPairDragUI,specialPairCrossUI,specialPairZodiacDragUI,tailZodiacCrossUI,tailDragUI,numberCategoryPackageUI,headParityUI,issuePrefixUI,slashZodiacGroupsUI,flatAnySuffixUI,blankMarketResetUI,blankPlayResetUI,separatePriceLinesUI,reversedZodiacPackageUI,receiptDrawExportUI,marketDirectionUI,bareMacauMarketUI,zodiacPackageUI,hongKongHeadingUI,receiptCompactUI,receiptExportUI,receiptExampleUI,headerStakeUI,multilineNumbersUI,compactTailGroupsUI,defaultStakeBasisUI,adjacentSubtotalUI,inlineMarketSectionUI,marketPrefixResetUI,ledgerAmountSortUI,playOverviewUI:playOverviewUI&&playFilterUI,bidirectionalNavigation,navigationHistoryUI,winningsUI,ledgerClear:clearRestorePassed,ledgerOverview:overviewPassed,pasteEditor:pasteEditorPassed,editorMemory,pasteCheckDetail,
+      twoNumberSpecialUI:await (await import('./two-number-special-startup-check.js')).checkTwoNumberSpecialUI(context),
+      receiptWinningStakesUI:await (await import('./receipt-winning-stakes-startup-check.js')).checkReceiptWinningStakesUI(context),
       parserStructure:structureTrial.issues.length===0&&summarize([structureTrial]).totalCents===31000&&structureTrial.bets.every(b=>b.player==='小明'&&b.markets.join()==='旧')&&structureTrial.bets[1].basis==='整项',
       parserUpgrade:upgradeCheck.before.totalCents===320000&&upgradeCheck.after.totalCents===20000&&upgradeFixture.autoTitle===false&&parseDocument(upgradeFixture.text,upgradeFixture).bets[0].status==='parsed'&&!document.querySelector('.parser-upgrade'),
       codexDefault:aiConfig.settings.transport==='codex', 
@@ -944,7 +1100,7 @@ onMounted(async () => {
       highlighted: ['play', 'selection', 'amount'].every(kind => document.querySelector(`.highlight-viewport .token-${kind}`)),
       stableEditor: afterIdle.storageRevision === idleRevision && document.querySelector('.editor-footer')?.textContent.includes('自动解析'),
       expandedEditor: expansionRestored,
-      numberDistribution: numberPanelWorks && zodiacSortWorks,
+      numberDistribution: numberPanelWorks && zodiacSortWorks, ledgerTransferUI,
       settlement: { menu: !!document.querySelector('[aria-label="开奖与赔付"]'), stakeCents: trial.result.stakeCents,
         payoutCents: trial.result.payoutCents, complete: trial.result.complete, restored: restoredSettlement.inputHash === trial.inputHash,
         originalText: restoredSettlement.inputs.documents[0].originalText === originalProject.documents[0].text,
@@ -980,18 +1136,19 @@ function formatEditor() {
   field.setSelectionRange(0,field.value.length);insertEditorText(field,next);toast('已按投注金额分行，可使用撤销恢复');
 }
 function compositionStart() { composing.value = true; clearTimeout(saveTimer); clearTimeout(parseTimer); }
-function compositionEnd() { composing.value = false; clearTimeout(parseTimer); parseTimer = setTimeout(parseAll, 300); clearTimeout(saveTimer); saveTimer = setTimeout(saveDraft, 650); }
+function compositionEnd() { composing.value = false; clearTimeout(parseTimer); parseTimer = setTimeout(parseInBackground, 300); clearTimeout(saveTimer); saveTimer = setTimeout(saveDraft, 650); }
 function syncEditorScroll() {
   if (!editor.value) return;
   if (lineNumbers.value) lineNumbers.value.scrollTop = editor.value.scrollTop;
-  if (highlightLayer.value) highlightLayer.value.style.transform = `translate(${-editor.value.scrollLeft}px, ${-editor.value.scrollTop}px)`;
+  const viewport=highlightLayer.value?.parentElement;
+  if(viewport){viewport.scrollTop=editor.value.scrollTop;viewport.scrollLeft=editor.value.scrollLeft;}
 }
 async function setEditorExpanded(open) {
   if(composing.value)return;
   rememberEditor();editorExpanded.value=open;await nextTick();measureEditor();restoreEditor(true);
 }
 onBeforeUnmount(() => {
-  disposed=true;rememberEditor();
+  disposed=true;parseGeneration++;parseWorker.dispose();rememberEditor();
   clearTimeout(parseTimer);clearTimeout(saveTimer);clearTimeout(noticeTimer);endDocumentDrag();stopSidebar();editorObserver?.disconnect();window.removeEventListener('keydown',workspaceKeydown);window.removeEventListener('pointerdown',closeWorkspaceMenus);
 });
 async function newDocument() {
@@ -1187,9 +1344,9 @@ defineExpose({flush:flushWorkspace,backup:backupWorkspace,currentView:()=>view.v
         <div v-if="account.error" class="review-banner" role="alert">{{account.error}}，原文保留。</div>
         <section class="workbench" :class="{'focus-editing':editorExpanded}">
           <div class="editor-panel panel">
-            <div class="panel-heading"><h2>投注原文</h2><div class="editor-heading-actions"><label class="editor-font-control">字号<select v-model.number="workspace.fontSize" aria-label="原文字号"><option v-for="size in [14,15,16,17,18]" :key="size" :value="size">{{size}}</option></select></label><label class="editor-wrap-control"><input v-model="workspace.wrap" type="checkbox" :disabled="!highlightEnabled" />折行显示</label><button class="text-button" :disabled="composing" @click="formatEditor">整理换行</button></div></div>
-            <div class="highlight-legend"><span class="token-play">● 玩法</span><span class="token-selection">● 生肖／号码</span><span class="token-amount">● 金额</span><span v-if="Object.keys(winningMarks).length" class="winning-legend" :title="winningBasisTitle">◆ 金色行为中奖 <small v-if="Object.values(winningMarks).some(m=>m.trial)">（试：未完成核对）</small></span><small v-if="!highlightEnabled">长文本使用普通显示</small><small v-else>粘贴自动分段，可撤销</small></div>
-            <div class="editor-wrap"><div ref="lineNumbers" class="line-numbers" aria-label="原文行号，点击定位结果"><button tabindex="-1" v-for="(_,i) in sourceLines.slice(0,10000)" :key="i" :class="{'winning-gutter':winningMarks[i+1],'trial-winning':winningMarks[i+1]?.trial,'located-gutter':isLinkedLine(i+1)}" :aria-label="'查看第'+(i+1)+'行结果'" :title="[winningMarks[i+1]?.title,'点击查看第'+(i+1)+'行结果'].filter(Boolean).join('\n')" @click="locateResults(i+1,i+1)" :style="rowHeights[i]?{height:rowHeights[i]+'px'}:undefined"><b v-if="winningMarks[i+1]">{{winningMarks[i+1].trial?'试':'中'}}</b>{{i+1}}</button></div><div :key="active.id" class="source-editor" :class="{'highlight-active':highlightEnabled&&!composing,'soft-wrap':effectiveWrap}"><div class="highlight-viewport" aria-hidden="true"><pre ref="highlightLayer"><span v-for="(row,i) in sourceRows" :key="i" class="source-line" :class="{'winning-line':winningMarks[i+1],'trial-winning':winningMarks[i+1]?.trial,'located-line':isLinkedLine(i+1)}" :title="winningMarks[i+1]?.title"><template v-for="(token,j) in row" :key="j"><span :class="token.kind?'token-'+token.kind:''">{{token.text}}</span></template>{{row.length?'':' '}}</span></pre></div><textarea ref="editor" v-model="active.text" :wrap="effectiveWrap?'soft':'off'" spellcheck="false" aria-label="投注原文" placeholder="粘贴或输入玩家投注…&#10;&#10;小明：旧 1 2 3 各100元&#10;特肖虎100元" @paste="pasteEditor" @compositionstart="compositionStart" @compositionend="compositionEnd" @scroll="syncEditorScroll" @click="updateEditorCursor" @keyup="updateEditorCursor" @select="updateEditorCursor" @input="updateEditorCursor" @keydown.meta.enter.prevent="locateResults()" @keydown.ctrl.enter.prevent="locateResults()"></textarea></div></div>
+            <div class="panel-heading"><h2>投注原文</h2><div class="editor-heading-actions"><label class="editor-font-control">字号<select v-model.number="workspace.fontSize" aria-label="原文字号"><option v-for="size in [14,15,16,17,18]" :key="size" :value="size">{{size}}</option></select></label><button class="text-button editor-display-mode" :aria-pressed="plainEditor" @click="plainEditor=!plainEditor;nextTick(measureEditor)">{{plainEditor?'恢复彩色高亮':'原文模式'}}</button><label class="editor-wrap-control"><input v-model="workspace.wrap" type="checkbox" :disabled="!highlightEnabled" />折行显示</label><button class="text-button" :disabled="composing" @click="formatEditor">整理换行</button></div></div>
+            <div class="highlight-legend"><span class="token-play">● 玩法</span><span class="token-selection">● 生肖／号码</span><span class="token-amount">● 金额</span><span v-if="Object.keys(winningMarks).length" class="winning-legend" :title="winningBasisTitle">◆ 金色行为中奖 <small v-if="Object.values(winningMarks).some(m=>m.trial)">（试：未完成核对）</small></span><small v-if="plainEditor">原文模式：直接显示完整文字</small><small v-else-if="!highlightEnabled">长文本使用普通显示</small><small v-else-if="!highlightMatchesSource">高亮未同步，已显示原文</small><small v-else>粘贴自动分段，可撤销</small></div>
+            <div class="editor-wrap"><div ref="lineNumbers" class="line-numbers" aria-label="原文行号，点击定位结果"><button tabindex="-1" v-for="(_,i) in sourceLines.slice(0,10000)" :key="i" v-memo="[rowHeights[i],winningMarks[i+1],isLinkedLine(i+1)]" :class="{'winning-gutter':winningMarks[i+1],'trial-winning':winningMarks[i+1]?.trial,'located-gutter':isLinkedLine(i+1)}" :aria-label="'查看第'+(i+1)+'行结果'" :title="[winningMarks[i+1]?.title,'点击查看第'+(i+1)+'行结果'].filter(Boolean).join('\n')" @click="locateResults(i+1,i+1)" :style="rowHeights[i]?{height:rowHeights[i]+'px'}:undefined"><b v-if="winningMarks[i+1]">{{winningMarks[i+1].trial?'试':'中'}}</b>{{i+1}}</button></div><div :key="active.id" class="source-editor" :class="{'highlight-active':highlightEnabled&&!composing&&!plainEditor&&highlightMatchesSource,'highlight-preparing':highlightEnabled&&!composing&&(plainEditor||!highlightMatchesSource),'soft-wrap':effectiveWrap}"><div class="highlight-viewport" aria-hidden="true"><pre ref="highlightLayer"><span v-for="(row,i) in sourceRows" :key="active.id+':'+i+':'+sourceLines[i]" v-memo="[active.id,row,winningMarks[i+1],isLinkedLine(i+1)]" class="source-line" :class="{'winning-line':winningMarks[i+1],'trial-winning':winningMarks[i+1]?.trial,'located-line':isLinkedLine(i+1)}" :title="winningMarks[i+1]?.title"><template v-for="(token,j) in row" :key="j"><span :class="token.kind?'token-'+token.kind:''">{{token.text}}</span></template>{{row.length?'':' '}}</span></pre></div><textarea ref="editor" v-model="active.text" :wrap="effectiveWrap?'soft':'off'" spellcheck="false" aria-label="投注原文" placeholder="粘贴或输入玩家投注…&#10;&#10;小明：旧 1 2 3 各100元&#10;特肖虎100元" @paste="pasteEditor" @compositionstart="compositionStart" @compositionend="compositionEnd" @scroll="syncEditorScroll" @click="updateEditorCursor" @keyup="updateEditorCursor" @select="updateEditorCursor" @input="updateEditorCursor" @keydown.meta.enter.prevent="locateResults()" @keydown.ctrl.enter.prevent="locateResults()"></textarea></div></div>
             <div class="editor-footer"><span>{{sourceLines.length}} 行 · 自动解析</span><button class="source-result-link" :disabled="composing" @click="locateResults()" title="⌘ / Ctrl + Enter；选中多行可查看对应投注">查看第 {{editorLines.line}}{{editorLines.endLine!==editorLines.line?'–'+editorLines.endLine:''}} 行结果 ↗</button></div>
           </div>
           <div id="ledger-results" v-show="!editorExpanded" class="results-panel panel">
@@ -1199,45 +1356,51 @@ defineExpose({flush:flushWorkspace,backup:backupWorkspace,currentView:()=>view.v
             <div v-if="countIssues && tab !== 'winnings'" class="review-banner"><span>!</span><div><strong>{{ errors.length }} 项输入待处理</strong><small>有歧义的投注暂不计入金额，请核对原文。</small></div><button @click="tab = 'issues'">查看 →</button></div>
             <div v-if="tab === 'players'" class="table-area"><table class="account-table"><thead><tr><th>玩家</th><th>新市场</th><th>旧市场</th><th>港市场</th><th>投注合计</th></tr></thead><tbody><tr v-for="(p, i) in summary.players" :key="p.id" @click="selectPlayer(p.id)" tabindex="0" @keydown.enter="selectPlayer(p.id)"><td><span :class="['avatar', `tone-${i % 4}`]">{{ p.name.slice(0, 1) }}</span><span>{{ p.name }}<small>{{ p.count }} 笔市场明细</small></span><span class="row-arrow">›</span></td><td :class="{ zero: !p.新 }">{{ p.新 ? money(p.新) : '—' }}</td><td :class="{ zero: !p.旧 }">{{ p.旧 ? money(p.旧) : '—' }}</td><td :class="{ zero: !p.港 }">{{ p.港 ? money(p.港) : '—' }}</td><td class="row-total">{{ money(p.totalCents) }}</td></tr></tbody><tfoot v-if="summary.players.length"><tr><td>合计</td><td>{{ money(summary.markets.新) }}</td><td>{{ money(summary.markets.旧) }}</td><td>{{ money(summary.markets.港) }}</td><td>{{ money(summary.totalCents) }}</td></tr></tfoot></table><div v-if="!summary.players.length" class="empty-state"><span>▤</span><strong>这里将显示玩家账目</strong><p>粘贴或导入投注文本，解析后即可核对。</p></div><div class="table-note">点击玩家查看投注明细；切换“中奖数据”查看本账目的中奖与应付金额。</div></div>
 
-            <div v-if="tab === 'details'" class="detail-area"><input class="search-input" v-model="search" placeholder="搜索玩家、玩法或原文…" aria-label="搜索投注" /><div v-for="b in pageBets" :key="b.id" class="bet-row" :class="{'located-result':linkedRows.bets.some(row=>row.id===b.id)}" :data-bet-id="b.id"><div class="bet-summary-row"><button class="bet-main" title="点击定位这笔投注的原文" @click="locate(b)"><span class="bet-person">{{ b.player }}<small>第 {{ b.line }}{{ b.endLine !== b.line ? `–${b.endLine}` : '' }} 行</small></span><span class="bet-description"><strong>{{ b.play }}</strong><span class="bet-values">{{ displayBetValues(b).slice(0, 100) }}</span><span class="bet-count">{{ b.count }} {{ b.basis === '每组' ? '组' : '份' }} × {{ money(b.unitCents) }} / {{ b.basis.replace('每', '') }}</span></span><span class="bet-markets"><i v-for="m in b.markets" :key="m" :class="['market-badge', marketClass(m)]">{{ m }}</i></span><strong class="bet-amount">{{ money(market ? b.perMarketCents : b.totalCents) }}</strong><span class="bet-locate-icon">↖</span></button><button class="bet-expand-toggle" :aria-label="(expanded===b.id?'收起':'展开')+'第'+b.line+'行投注详情'" :aria-expanded="expanded===b.id" @click="expanded=expanded===b.id?'':b.id">{{expanded===b.id?'收起':'详情'}}⌄</button></div><div v-if="expanded === b.id" class="bet-expanded"><div class="raw-quote">{{ b.raw }}</div><p class="semantic-explanation">{{b.markets.join("／")}} ｜ {{b.play}} ｜ {{b.groups?'已列'+b.groups.length+'组（分组见下方）':displayValues(b.values,b)}} ｜ {{b.basis}}{{money(b.unitCents)}}元 ｜ 合计{{money(b.totalCents)}}元</p><p v-if="b.continuation" class="continuation-note">第{{b.line}}–{{b.endLine}}行{{b.continuation.kind==='groups'?'按行分组':'合并选号'}}，使用第{{b.continuation.amountLine}}行的{{b.continuation.kind==='groups'?'每组':'每号'}}金额。</p><p v-if="['R33','R41'].includes(b.drag?.ruleId)" class="zodiac-drag-note">固定{{b.drag.anchors?.join("、")||b.drag.anchor}}，分别搭配{{b.drag.animals.join("、")}}，共{{b.count}}组，每组{{money(b.unitCents)}}元。<span v-if="b.drag.repeatedAnimals?.length" class="drag-repeat-note">{{b.drag.repeatedAnimals.join("、")}}重复列出，对应分组按实际份数计费和赔付。</span></p><p v-if="['R30','R34'].includes(b.drag?.ruleId)" class="drag-note">{{pad(b.drag.anchor)}}拖{{b.drag.animal}}：固定{{pad(b.drag.anchor)}}，分别搭配{{b.drag.numbers.map(pad).join("、")}}，共{{b.count}}组，每组{{money(b.unitCents)}}元。<span v-if="b.drag.excluded.length">已排除与{{pad(b.drag.anchor)}}自身配对。</span></p><p v-if="b.drag?.ruleId==='R40'" class="tail-drag-note">固定{{b.drag.anchors.map(pad).join("、")}}，分别搭配{{b.drag.tail}}尾号码{{b.drag.numbers.map(pad).join("、")}}，共{{b.count}}组，每组{{money(b.unitCents)}}元。<span v-if="b.drag.excluded.length">已排除与固定号码重复的{{b.drag.excluded.map(pad).join("、")}}。</span></p><p v-if="b.drag?.ruleId==='R46'" class="tail-zodiac-cross-note">{{b.drag.tail}}尾（{{b.drag.anchors.map(pad).join("、")}}）与{{b.drag.animal}}（{{b.drag.numbers.map(pad).join("、")}}）交叉配对，共{{b.count}}组，每组{{money(b.unitCents)}}元。两个正码同时命中，按二中二赔率计算。<span v-if="b.drag.excluded.length">已排除{{b.drag.excluded.map(pad).join("、")}}与自身配对，其余配对保留。</span></p><p v-if="b.zodiacCross" class="zodiac-cross-note">{{b.zodiacCross.animals[0]}}（{{b.zodiacCross.numbers[0].map(pad).join("、")}}）与{{b.zodiacCross.animals[1]}}（{{b.zodiacCross.numbers[1].map(pad).join("、")}}）交叉配对，共{{b.count}}组，每组{{money(b.unitCents)}}元。一正码加一特码中奖，按特串赔率计算。</p><p v-if="b.allocation" class="allocation-note">{{b.allocation.source}}：每个市场总额 {{money(b.allocation.totalCents)}}元 ÷ {{b.count}}个号码＝每号 {{money(b.unitCents)}}元</p><p v-if="b.semantic?.declaration">玩法依据第{{b.semantic.declaration.line}}行：{{b.semantic.declaration.body}}</p><p>{{ b.fileName }} · {{ b.businessDate }} · {{ b.marketSource ? `市场来自第${b.marketSource}行声明` : '默认新市场' }}</p><p v-for="(entry, index) in b.expansions" :key="index" class="expansion-note">{{ entry.source }} → {{ entry.kind==='head-parity' ? entry.heads.join('、')+'头中的'+entry.parity+'数' : entry.members?.join('、') || '固定五行' }} → {{ entry.numbers.map(pad).join('、') }} <small>（{{ entry.businessDate || '全年份固定' }}）</small></p><p v-for="w in b.warnings" :key="w" class="warning-text">ⓘ {{ w }}</p><div v-if="b.basis === '每组'" class="combination-list"><span v-for="(g, i) in preview(b)" :key="i">{{ displayValues(g, b) }}</span><small v-if="b.count > 60">仅预览前60组，完整金额按{{ b.count }}组计算</small></div><button class="text-button" @click="locate(b)">定位原文 ↗</button></div></div><div v-if="!visibleBets.length" class="empty-state"><strong>暂无匹配的投注</strong></div><div class="pagination"><span>共 {{ visibleBets.length }} 笔</span><button :disabled="page <= 1" @click="page--">上一页</button><span>{{ page }} / {{ maxPage }}</span><button :disabled="page >= maxPage" @click="page++">下一页</button></div></div>
+            <div v-if="tab === 'details'" class="detail-area"><input class="search-input" v-model="search" placeholder="搜索玩家、玩法或原文…" aria-label="搜索投注" /><div v-for="b in pageBets" :key="b.id" class="bet-row" :class="{'located-result':linkedRows.bets.some(row=>row.id===b.id)}" :data-bet-id="b.id"><div class="bet-summary-row"><button class="bet-main" title="点击定位这笔投注的原文" @click="locate(b)"><span class="bet-person">{{ b.player }}<small>第 {{ b.line }}{{ b.endLine !== b.line ? `–${b.endLine}` : '' }} 行</small></span><span class="bet-description"><strong>{{ b.play }}</strong><span class="bet-values">{{ displayBetValues(b).slice(0, 100) }}</span><span class="bet-count">{{ b.count }} {{ b.basis === '每组' ? '组' : '份' }} × {{ money(b.unitCents) }} / {{ b.basis.replace('每', '') }}</span></span><span class="bet-markets"><i v-for="m in b.markets" :key="m" :class="['market-badge', marketClass(m)]">{{ m }}</i></span><strong class="bet-amount">{{ money(market ? b.perMarketCents : b.totalCents) }}</strong><span class="bet-locate-icon">↖</span></button><button class="bet-expand-toggle" :aria-label="(expanded===b.id?'收起':'展开')+'第'+b.line+'行投注详情'" :aria-expanded="expanded===b.id" @click="expanded=expanded===b.id?'':b.id">{{expanded===b.id?'收起':'详情'}}⌄</button></div><div v-if="expanded === b.id" class="bet-expanded"><div class="raw-quote">{{ b.raw }}</div><p class="semantic-explanation">{{b.markets.join("／")}} ｜ {{b.play}} ｜ {{b.groups?'已列'+b.groups.length+'组（分组见下方）':displayValues(b.values,b)}} ｜ {{b.basis}}{{money(b.unitCents)}}元 ｜ 合计{{money(b.totalCents)}}元</p><p v-if="b.continuation" class="continuation-note">第{{b.line}}–{{b.endLine}}行{{b.continuation.kind==='groups'?'按行分组':'合并选号'}}，使用第{{b.continuation.amountLine}}行的{{b.continuation.kind==='groups'?'每组':'每号'}}金额。</p><p v-if="['R33','R41'].includes(b.drag?.ruleId)" class="zodiac-drag-note">固定{{b.drag.anchors?.join("、")||b.drag.anchor}}，分别搭配{{b.drag.animals.join("、")}}，共{{b.count}}组，每组{{money(b.unitCents)}}元。<span v-if="b.drag.repeatedAnimals?.length" class="drag-repeat-note">{{b.drag.repeatedAnimals.join("、")}}重复列出，对应分组按实际份数计费和赔付。</span></p><p v-if="['R30','R34'].includes(b.drag?.ruleId)" class="drag-note">{{pad(b.drag.anchor)}}拖{{b.drag.animal}}：固定{{pad(b.drag.anchor)}}，分别搭配{{b.drag.numbers.map(pad).join("、")}}，共{{b.count}}组，每组{{money(b.unitCents)}}元。<span v-if="b.drag.excluded.length">已排除与{{pad(b.drag.anchor)}}自身配对。</span></p><p v-if="b.drag?.ruleId==='R40'" class="tail-drag-note">固定{{b.drag.anchors.map(pad).join("、")}}，分别搭配{{b.drag.tail}}尾号码{{b.drag.numbers.map(pad).join("、")}}，共{{b.count}}组，每组{{money(b.unitCents)}}元。<span v-if="b.drag.excluded.length">已排除与固定号码重复的{{b.drag.excluded.map(pad).join("、")}}。</span></p><p v-if="b.drag?.ruleId==='R46'" class="tail-zodiac-cross-note">{{b.drag.tail}}尾（{{b.drag.anchors.map(pad).join("、")}}）与{{b.drag.animal}}（{{b.drag.numbers.map(pad).join("、")}}）交叉配对，共{{b.count}}组，每组{{money(b.unitCents)}}元。两个正码同时命中，按二中二赔率计算。<span v-if="b.drag.excluded.length">已排除{{b.drag.excluded.map(pad).join("、")}}与自身配对，其余配对保留。</span></p><p v-if="['R52','R59'].includes(b.drag?.ruleId)" class="number-pool-drag-note">{{b.drag.anchors.map(pad).join("、")}}与{{b.drag.numbers.map(pad).join("、")}}交叉配对，共{{b.count}}组，每组{{money(b.unitCents)}}元。{{b.playType==='special-pair'?'每组一正码加一特码中奖，按特串赔率计算。':'每组两个正码同时命中，按二中二赔率计算。'}}<span v-if="b.drag.excluded.length">已排除{{b.drag.excluded.map(pad).join("、")}}与自身配对。</span></p><p v-if="b.drag?.ruleId==='R53'" class="zodiac-number-drag-note">{{b.drag.anchorAnimal}}（{{b.drag.anchors.map(pad).join("、")}}）分别搭配{{b.drag.animals.join("、")}}的号码（{{b.drag.numbers.map(pad).join("、")}}），共{{b.count}}组，每组{{money(b.unitCents)}}元。每组两个正码同时命中，按二中二赔率计算。</p><p v-if="b.drag?.ruleId==='R54'" class="number-tail-drag-note">固定{{pad(b.drag.anchor)}}，分别搭配{{b.drag.tail}}尾号码{{b.drag.numbers.map(pad).join("、")}}，共{{b.count}}组，每组{{money(b.unitCents)}}元。每组两个正码同时命中，按二中二赔率计算。<span v-if="b.drag.excluded.length">已排除{{pad(b.drag.anchor)}}与自身配对。</span></p><p v-if="b.drag?.ruleId==='R55'" class="tail-pool-drag-note">{{b.drag.leftTail}}尾（{{b.drag.anchors.map(pad).join("、")}}）与{{b.drag.rightTail}}尾（{{b.drag.numbers.map(pad).join("、")}}）交叉配对，共{{b.count}}组，每组{{money(b.unitCents)}}元。每组两个正码同时命中，按二中二赔率计算。</p><p v-if="b.drag?.ruleId==='R57'" class="default-drag-note">省略玩法按{{b.play}}，每侧各取一个号码，共{{b.count}}组，每组{{money(b.unitCents)}}元。明确写特串时按特串结算。</p><p v-if="b.zodiacCross" class="zodiac-cross-note">{{b.zodiacCross.animals[0]}}（{{b.zodiacCross.numbers[0].map(pad).join("、")}}）与{{b.zodiacCross.animals[1]}}（{{b.zodiacCross.numbers[1].map(pad).join("、")}}）交叉配对，共{{b.count}}组，每组{{money(b.unitCents)}}元。一正码加一特码中奖，按特串赔率计算。</p><p v-if="b.allocation" class="allocation-note">{{b.allocation.source}}：每个市场总额 {{money(b.allocation.totalCents)}}元 ÷ {{b.count}}个号码＝每号 {{money(b.unitCents)}}元</p><p v-if="b.semantic?.declaration">玩法依据第{{b.semantic.declaration.line}}行：{{b.semantic.declaration.body}}</p><p>{{ b.fileName }} · {{ b.businessDate }} · {{ b.marketSource ? `市场来自第${b.marketSource}行声明` : '默认新市场' }}</p><p v-for="(entry, index) in b.expansions" :key="index" class="expansion-note">{{ entry.source }} → {{ entry.kind==='head-parity' ? entry.heads.join('、')+'头中的'+entry.parity+'数' : entry.members?.join('、') || '固定五行' }} → {{ entry.numbers.map(pad).join('、') }} <small>（{{ entry.businessDate || '全年份固定' }}）</small></p><p v-for="w in b.warnings" :key="w" class="warning-text">ⓘ {{ w }}</p><div v-if="b.basis === '每组'" class="combination-list"><span v-for="(g, i) in preview(b)" :key="i">{{ displayValues(g, b) }}</span><small v-if="b.count > 60">仅预览前60组，完整金额按{{ b.count }}组计算</small></div><button class="text-button" @click="locate(b)">定位原文 ↗</button></div></div><div v-if="!visibleBets.length" class="empty-state"><strong>暂无匹配的投注</strong></div><div class="pagination"><span>共 {{ visibleBets.length }} 笔</span><button :disabled="page <= 1" @click="page--">上一页</button><span>{{ page }} / {{ maxPage }}</span><button :disabled="page >= maxPage" @click="page++">下一页</button></div></div>
 
             <div v-if="tab === 'issues'" class="issue-area">
-              <div v-for="i in visibleIssues" :key="i.id" :data-issue-id="i.id" :class="['issue-card', { warning: i.severity === 'warning','located-result':linkedRows.issues.some(row=>row.id===i.id) }]">
+              <div v-for="i in visibleIssues" :key="i.id" v-memo="[i,linkedRows.issues.some(row=>i.memberIds.includes(row.id))]" :data-issue-id="i.id" :class="['issue-card', { warning: i.severity === 'warning','located-result':linkedRows.issues.some(row=>i.memberIds.includes(row.id)) }]">
                 <span class="issue-icon">{{ i.severity === 'warning' ? 'ⓘ' : '!' }}</span>
-                <div class="issue-content"><strong>{{i.detail.title}}</strong>
+                <div class="issue-content"><strong>{{i.detail.title}}</strong><small v-if="i.members.length>1">同一条原文的 {{i.members.length}} 项提示已合并</small>
                   <small>{{ i.fileName }} · 第{{ i.line }}{{ i.endLine !== i.line ? `–${i.endLine}` : '' }}行 · {{ i.player || '文档' }}</small>
                   <p class="issue-raw">{{i.raw}}</p>
                   <p class="issue-reason"><b>待处理原因：</b>{{i.detail.reason}}</p>
                   <p v-if="i.detail.aiStatus"><b>核验状态：</b>{{i.detail.aiStatus}}</p>
                   <p v-if="i.detail.localExplanation"><b>本地试算（未计入）：</b>{{i.detail.localExplanation}}</p>
                   <p><b>处理建议：</b>{{i.detail.suggestion}}</p>
-                  <div class="issue-actions"><button class="text-button" @click="locate(i)">定位并修改 →</button><button v-if="i.code==='AI_REVIEW'" class="text-button" @click="openIssueReview(i)">查看AI核验 →</button></div>
+                  <div class="issue-actions"><button class="text-button" @click="locate(i)">定位并修改 →</button><button v-if="i.hasAIReview" class="text-button" @click="openIssueReview(i)">查看AI核验 →</button></div>
                 </div>
               </div>
-              <div v-if="!issues.length" class="empty-state good"><span>✓</span><strong>当前没有待处理项</strong><p>你仍可以逐笔核对原文与金额。</p></div><p v-if="issues.length > issueLimit" class="table-note">显示前{{issueLimit}}项。修正后重新解析即可继续查看。</p>
+              <div v-if="!issues.length" class="empty-state good"><span>✓</span><strong>当前没有待处理项</strong><p>你仍可以逐笔核对原文与金额。</p></div><div v-if="issues.length>ISSUE_PAGE_SIZE" class="pagination"><span>共 {{issues.length}} 项 · 每页 {{ISSUE_PAGE_SIZE}} 项</span><button :disabled="issuePage<=1" @click="issuePage--">上一页</button><span>{{issuePage}} / {{issuePageCount}}</span><button :disabled="issuePage>=issuePageCount" @click="issuePage++">下一页</button></div>
             </div>
 
             <div v-if="tab === 'numbers'" class="number-area">
               <div class="number-summary"><div><span>49个号码平均金额</span><strong>¥ {{ money(distribution.averageCents) }}</strong></div><small>{{ distribution.aboveCount }} 个号码高于平均</small></div>
               <p>当前筛选的特码逐号金额合计 ÷ 49，未投注号码也计入平均。连肖、连码、特肖等单独计费。</p>
-              <div class="number-toolbar"><label for="number-sort">排列方式</label><select id="number-sort" v-model="numberSort"><option v-for="option in NUMBER_SORTS" :key="option.value" :value="option.value" :disabled="option.value === 'zodiac' && !rule">{{ option.label }}</option></select></div>
+              <SpecialTransferPanel :key="scope+':'+active.id" :results="numberTransferDocuments" :settings="overviewLoaded?.settings" :date="numberTransferDate" :market="market" :scope-label="numberTransferScope" :source-error="numberTransferError" @enable="prepareNumberTransfer">
+                <template #toolbar><label for="number-sort">排列方式<select id="number-sort" v-model="numberSort"><option v-for="option in NUMBER_SORTS" :key="option.value" :value="option.value" :disabled="option.value === 'zodiac' && !rule">{{ option.label }}</option></select></label></template>
+                <template #default="{plan,enabled,transferByNumber,profitByNumber,profitLabel,signedMoney}">
               <p class="number-sort-hint">{{ numberSortHint }}</p>
               <p class="number-zodiac-date" v-if="rule">生肖按当前账目：{{ rule.lunarYear }} {{ rule.animal }}年 · {{ active.businessDate }}<small v-if="mixedZodiacYears">含不同农历年份，生肖标签与排序统一按当前账目日期；各账目金额仍按原业务日期解析。</small></p>
               <p v-else class="number-zodiac-date">请填写有效的业务日期以显示生肖。</p>
-              <div class="number-grid"><div v-for="n in sortedNumbers" :key="n.number" :data-number="n.number" :class="{ funded: n.cents, 'above-average': n.aboveAverage }">
+              <div class="number-grid" :class="{'transfer-active':enabled}"><div v-for="n in sortedNumbers" :key="n.number" :data-number="n.number" :class="{ funded: n.cents, 'above-average': n.aboveAverage }">
                 <div class="number-excess-slot"><small v-if="n.aboveAverage" class="number-excess">{{ n.excessCents ? `超出 +${money(n.excessCents)}` : '超出 <0.01' }}</small></div>
                 <small class="number-animal">{{ n.animal || '—' }}</small><strong>{{ n.label }}</strong><small class="number-wave" :class="{ red: n.wave === '红', blue: n.wave === '蓝', green: n.wave === '绿' }">{{ n.wave }}波</small><span>{{ n.cents ? money(n.cents) : '—' }}</span>
+                <span v-if="plan" class="number-transfer" :data-transfer-cents="transferByNumber[n.number]"><small>打出</small><b>¥ {{money(transferByNumber[n.number])}}</b></span>
+                <span v-if="plan" class="number-profit" :class="{'number-profit-gain':profitByNumber[n.number]>0,'number-profit-loss':profitByNumber[n.number]<0,'number-profit-flat':profitByNumber[n.number]===0}" :data-profit-cents="profitByNumber[n.number]"><small>{{profitLabel(profitByNumber[n.number])}}</small><b>{{signedMoney(profitByNumber[n.number])}}</b></span>
               </div></div>
+                </template>
+              </SpecialTransferPanel>
               <p class="number-rounding">金额显示到分；超出金额按未取整的平均值计算。排序只改变显示顺序，保留全部49个号码。</p>
             </div>
             <LedgerWinnings ref="winningsView" :settings-revision="overviewLoaded?.settings.revision" :receipt-request="receiptRequest" v-if="winningsOpened" v-show="tab === 'winnings'" :key="active.id + active.businessDate" :document="active" :documents="documents" :prepare="() => saveDraft(true)" @context="receiveWinningsContext" @locate="locate" @updated="refreshOverview()" @settings="showSettlement" @rebates="showRebates" />
-            <footer class="results-footer"><span><i class="status-dot"></i> {{ errors.length ? '仍有待确认输入' : '解析完成' }}</span><span>金额单位：元 <span>·</span> 赔付：按期号核算</span></footer>
+            <footer class="results-footer"><span><i class="status-dot"></i> {{ !activeParseFresh ? '正在更新解析，金额为上次结果' : errors.length ? '仍有待确认输入' : '解析完成' }}</span><span>金额单位：元 <span>·</span> 赔付：按期号核算</span></footer>
           </div>
         </section>
 
       </div>
       <section v-if="view==='ledger'&&!documents.length" class="space-empty"><h1>{{space.name}}</h1><p>这个空间还没有账目</p><button class="button primary" @click="newDocument">＋ 新建账目</button><button class="button" @click="openFiles">导入账目</button></section>
-      <AiReview v-if="initialized&&documents.length" v-show="view==='ai'" :document="active" :prepare="()=>saveDraft(true)" :apply="applyAssistance" />
+      <AiReview :visible="view==='ai'" v-if="initialized&&documents.length" v-show="view==='ai'" :document="active" :prepare="()=>saveDraft(true)" :apply="applyAssistance" />
       <p v-if="['overview','collection','flatZodiac','settlement','inbox','rebates'].includes(view)" class="space-page-label">当前空间 · {{space.name}}</p>
       <LedgerOverview v-if="view==='overview'" :overview="overview" :loaded="overviewLoaded" :busy="overviewBusy" :error="overviewError" :mode="overviewMode" :draw-date="overviewDate" :selection="overviewSelection" :verification="overviewVerification" :draws="overviewDraws" @refresh="refreshOverview()" @sync="refreshOverview({sync:true})" @mode="changeOverviewMode" @select="selectOverview" @adopt="adoptOverview" @open="selectDocument" @locate="locate" @settings="showSettlement" @source="openOverviewSource" />
       <SpecialCollection v-if="view === 'collection'" :results="results" :reference-date="active.businessDate" :latest="overviewLatest" :busy="overviewBusy" :draw-error="overviewError" :settings="overviewLoaded?.settings" @locate="locate" @sync="refreshOverview({sync:true,latest:true})" @review="showLatestOverview" />
