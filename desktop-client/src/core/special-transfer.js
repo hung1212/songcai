@@ -188,12 +188,12 @@ function periodForBet(doc, bet, market) {
   });
 }
 
-export function specialTransferPlan(documents, settings, { date, market } = {}) {
+export function specialTransferPlan(documents, settings, { date, market, allowEmpty=false } = {}) {
   if (!date || !MARKETS.includes(market)) throw new Error('请选择单个业务日期和市场，再查看转出方案');
   if (!settings?.odds?.[market]) throw new Error('正在加载玩家赔率与退水设置');
   settings = ledgerOwnerSettings(documents,settings);
   const collection = specialCollection(documents, {date,market});
-  if (!collection.bets.length) throw new Error('当前日期和市场没有已解析的特码投注');
+  if (!collection.bets.length&&!allowEmpty) throw new Error('当前日期和市场没有已解析的特码投注');
   const playerOdds = validatePlayerOdds(settings.playerOdds || {});
   const defaultOdds = validateOdds(settings.odds[market]);
   const docs = new Map(documents.map(d=>[d.id,d])), periods = new Set(), players = new Map(), entries = [];
@@ -219,7 +219,7 @@ export function specialTransferPlan(documents, settings, { date, market } = {}) 
   const rebate = withRebates({entries,players:[...players.values()],issues:[],payoutCents:0},settings.rebates||{}).rebateCents;
   const plan = optimizeSpecialTransfer(liabilities.map(safe),collection.summary.totalCents-rebate);
   const numbers = collection.summary.numbers.map((n,i)=>({...n,liabilityCents:safe(liabilities[i]),transferCents:plan.transferCents[i],profitCents:plan.profitCents[i]}));
-  return {...plan,date,market,numbers,stakeCents:collection.summary.totalCents,playerRebateCents:rebate,
+  return {...plan,date,market,period:[...periods][0]||'',numbers,stakeCents:collection.summary.totalCents,playerRebateCents:rebate,
     zeroRebateStakeCents:safe(sum(zeroRebateStakes)),unknownPeriod,confirmedOdds:defaultOdds.confirmed,
     issueCount:collection.issues.length,exceedsStake:numbers.some(n=>n.transferCents>n.cents)};
 }

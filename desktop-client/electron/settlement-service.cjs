@@ -14,7 +14,7 @@ module.exports=async function installSettlement({electron,window:getWindow,ledge
   if(spaces){
     let publicDrawStore;
     return require('./scoped-service.cjs').scopedService({name:'settlement',electron,getWindow,spaces,
-      methods:['players','load','settings','openSource','sync','manual','preview','save','get'],readOnly:['players','load','openSource','preview','get'],
+      methods:['players','load','settings','openSource','sync','manual','preview','save','get','transferList','transferAdd','transferVoid','transferDelete'],readOnly:['players','load','openSource','preview','get','transferList'],
       create:async id=>{
         const service=await installSettlement({electron,window:getWindow,ledger:{read:()=>spaces.project(id)},inbox:await inbox.ensure(id),fetcher,directory:spaces.dataDirectory(id),spaceId:id,sharedDrawStore:publicDrawStore,register:false});
         if(id==='default')publicDrawStore=service.store;return service;
@@ -23,6 +23,8 @@ module.exports=async function installSettlement({electron,window:getWindow,ledge
   const core=await import('../src/core/settlement.js'),drawCore=await import('../src/core/draws.js'),parser=await import('../src/core/parser.js'),rules=await import('../src/core/rules.js'),verificationCore=await import('../src/core/draw-verification.js'),selectionCore=await import('../src/core/draw-selection.js');
   const {reviewSettlement}=await import('../src/core/parser-upgrade.js');
   const {settlementPlayers}=await import('../src/core/rebates.js');
+  const {validateTransferRecord}=await import('../src/core/transfer-journal.js');
+  const transferStore=new (require('./transfer-store.cjs').TransferStore)(directory||electron.app.getPath('userData'),validateTransferRecord);
   const store=new SettlementStore(directory||electron.app.getPath('userData'),core,drawCore,reviewSettlement);
   if(sharedDrawStore)for(const method of ['addDraws','listDraws','draw','fetchReports','saveFetchReport'])store[method]=sharedDrawStore[method].bind(sharedDrawStore);
   const network=fetcher||((url,options)=>electron.net.fetch(url,options));let syncing=false;let lastAutoSync=0;let syncPromise=null;let lastAutoYear=0;let closing=false;
@@ -47,6 +49,10 @@ module.exports=async function installSettlement({electron,window:getWindow,ledge
     return {...(spaceId?{spaceId}:{}),documents,draws,settings,date,kind:input.kind,selection:input.kind==='current'?String(input.activeId):'all',verification,...(drawDates?{drawDates}:{})};
   }
   const handlers={
+    transferList:input=>{validDate(input.date);if(!rules.MARKETS.includes(input.market))throw new Error('请选择市场');return transferStore.list(input);},
+    transferAdd:input=>{if(input.documentId&&!(ledger.read()?.documents||[]).some(d=>d.id===input.documentId&&d.businessDate===input.date))throw new Error('该空间没有对应日期的账目，请先保存账目');return transferStore.add(input);},
+    transferVoid:input=>transferStore.void(input),
+    transferDelete:input=>{validDate(input.date);return transferStore.delete(input);},
     players:()=>settlementPlayers(inbox.settlementDocuments?.('')||[]),
     load:input=>{const date=validDate(input.date);return {settings:store.settings(),draws:Object.fromEntries(rules.MARKETS.map(m=>[m,store.listDraws(m,input.allDates?undefined:Number(date.slice(0,4)))])),reports:store.fetchReports(Number(date.slice(0,4))),history:store.history(date)};},
     settings:input=>store.saveSettings(input),
@@ -81,6 +87,6 @@ module.exports=async function installSettlement({electron,window:getWindow,ledge
     get:input=>store.getSettlement(input.id),
   };
   if(register)for(const [name,handler] of Object.entries(handlers))electron.ipcMain.handle(`settlement:${name}`,(event,input)=>{if(event.sender!==getWindow()?.webContents)throw new Error('未知窗口');return handler(input);});
-  return {handlers,store,close:()=>{if(!closing){closing=true;store.close();}}};
+  return {handlers,store,close:()=>{if(!closing){closing=true;store.close();transferStore.close();}}};
 };
 module.exports.fetchJson=fetchJson;

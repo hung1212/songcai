@@ -1,22 +1,30 @@
 <script setup>
-import {computed,ref,useId} from 'vue';
+import {computed,ref,useId,watch} from 'vue';
 import {formatMoney as money} from '../core/rules.js';
 import {MARKET_NAMES} from '../core/special-number-highlights.js';
 import {specialTransferPlan,specialTransferScenarios} from '../core/special-transfer.js';
-const props=defineProps({results:{type:Array,default:()=>[]},settings:Object,date:String,market:String,scopeLabel:String,sourceError:String});
+import TransferJournal from './TransferJournal.vue';
+const props=defineProps({results:{type:Array,default:()=>[]},settings:Object,date:String,market:String,scopeLabel:String,sourceError:String,allRecords:{type:Boolean,default:true}});
 const emit=defineEmits(['enable']);
 const transferEnabled=ref(false);
+const journalMode=ref(false),journalState=ref(null);
+watch(()=>[props.date,props.market,journalMode.value],()=>{journalState.value=null;});
+function receiveJournal(state){journalState.value=state;}
+const actualByNumber=computed(()=>Object.fromEntries((journalState.value?.actualByNumber||Array(49).fill(0)).map((cents,i)=>[i+1,cents])));
+const transferLabel=computed(()=>journalMode.value?'需补打':'打出');
 const selectedPlanId=ref('maximin'),customMode=ref('loss'),customPercent=ref('5');
 const scenarioGroup='special-transfer-'+useId();
 const transferBook=computed(()=>{
   if(!transferEnabled.value)return {plan:null,error:''};
-  if(props.sourceError)return {plan:null,error:props.sourceError};
-  try{return {plan:specialTransferPlan(props.results,props.settings,{date:props.date,market:props.market}),error:''};}
+  if(props.sourceError&&!journalMode.value)return {plan:null,error:props.sourceError};
+  try{return {plan:specialTransferPlan(props.results,props.settings,{date:props.date,market:props.market,allowEmpty:journalMode.value}),error:''};}
   catch(e){return {plan:null,error:e.message};}
 });
 const transferScenarios=computed(()=>transferBook.value.plan?specialTransferScenarios(transferBook.value.plan,{mode:customMode.value,percent:customPercent.value}):[]);
 const selectedScenario=computed(()=>transferScenarios.value.find(p=>p.id===selectedPlanId.value));
 const transfer=computed(()=>{
+  if(props.sourceError||!transferBook.value.plan)return {plan:null};
+  if(journalMode.value)return {plan:journalState.value?.error?null:journalState.value?.plan||null};
   const book=transferBook.value.plan,scenario=selectedScenario.value;
   if(!book||!scenario?.feasible)return {plan:null};
   const numbers=book.numbers.map((n,i)=>({...n,transferCents:scenario.transferCents[i],profitCents:scenario.profitCents[i]}));
@@ -27,23 +35,35 @@ const signedMoney=value=>(value<0?'−':'')+'¥ '+money(Math.abs(value));
 const transferByNumber=computed(()=>Object.fromEntries((transfer.value.plan?.numbers||[]).map(n=>[n.number,n.transferCents])));
 const profitByNumber=computed(()=>Object.fromEntries((transfer.value.plan?.numbers||[]).map(n=>[n.number,n.profitCents])));
 const profitLabel=value=>value>0?'预计净盈利':value<0?'预计净亏损':'预计持平';
+// Legacy previews are independent of journal records, loading and failures.
 function toggleTransfer(){
-  transferEnabled.value=!transferEnabled.value;
-  if(transferEnabled.value)emit('enable');
+  if(transferEnabled.value&&!journalMode.value){transferEnabled.value=false;return;}
+  journalMode.value=false;
+  selectedPlanId.value='maximin';
+  transferEnabled.value=true;
+  emit('enable');
+}
+function showJournal(){
+  if(!transferEnabled.value)emit('enable');
+  transferEnabled.value=true;
+  journalMode.value=true;
 }
 function showAverageTransfer(){
-  if(!transferEnabled.value)toggleTransfer();
+  journalMode.value=false;
   selectedPlanId.value='average-excess';
+  if(!transferEnabled.value){transferEnabled.value=true;emit('enable');}
 }
 </script>
 
 <template>
   <div class="special-transfer">
-    <div class="number-toolbar"><slot name="toolbar" /><button class="button transfer-toggle" :class="{primary:transferEnabled}" :aria-pressed="transferEnabled" @click="toggleTransfer">{{transferEnabled?'关闭转出方案':'稳定转出方案'}}</button><button class="button average-transfer-toggle" :class="{primary:transferEnabled&&selectedPlanId==='average-excess'}" :aria-pressed="transferEnabled&&selectedPlanId==='average-excess'" @click="showAverageTransfer">超出平均转出</button><slot name="toolbar-end" /></div>
+    <div class="number-toolbar"><slot name="toolbar" /><button class="button transfer-toggle" :class="{primary:transferEnabled&&!journalMode}" :aria-pressed="transferEnabled&&!journalMode" @click="toggleTransfer">{{transferEnabled&&!journalMode?'关闭转出方案':'稳定转出方案'}}</button><button class="button average-transfer-toggle" :class="{primary:transferEnabled&&!journalMode&&selectedPlanId==='average-excess'}" :aria-pressed="transferEnabled&&!journalMode&&selectedPlanId==='average-excess'" @click="showAverageTransfer">超出平均转出</button><button class="button" :class="{primary:journalMode&&transferEnabled}" @click="showJournal">分批打出／补打记录</button><slot name="toolbar-end" /></div>
       <section v-if="transferEnabled" class="transfer-summary" aria-label="特码转出方案" aria-live="polite">
-        <header><strong>转出方案比较<span v-if="scopeLabel"> · {{scopeLabel}}</span> · {{date||'请选择日期'}} · {{market?MARKET_NAMES[market]:'请选择市场'}}</strong><span>对方含本47.3倍 · 全额退水3.3% · {{selectedPlanId==='average-excess'?'超额按分转出':'每号整元'}}</span></header>
+        <header><strong>转出方案比较<span v-if="scopeLabel"> · {{scopeLabel}}</span> · {{date||'请选择日期'}} · {{market?MARKET_NAMES[market]:'请选择市场'}}</strong><span v-if="!journalMode">对方含本47.3倍 · 全额退水3.3% · {{selectedPlanId==='average-excess'?'超额按分转出':'每号整元'}}</span></header>
         <p v-if="transferBook.error" class="transfer-warning" role="status">{{transferBook.error}}</p>
         <template v-else-if="transferBook.plan">
+          <TransferJournal v-if="journalMode" :book="transferBook.plan" :results="results" :all-records="allRecords" :enabled="journalMode" :source-error="sourceError" @change="receiveJournal" />
+          <template v-if="!journalMode">
           <p>百分比基准：当前范围的特码总投注 <b data-transfer-basis>¥ {{money(transferBook.plan.stakeCents)}}</b>（扣退水前）。指定盈亏目标后，求满足目标的最少转出金额。</p>
           <div class="transfer-controls">
             <label>自定义目标<select v-model="customMode" aria-label="转出目标类型" @change="selectedPlanId='custom'"><option value="loss">允许最大亏损</option><option value="profit">要求最低盈利</option></select></label>
@@ -67,13 +87,14 @@ function showAverageTransfer(){
             <p v-if="transfer.plan.worstProfitCents<0" class="transfer-warning">所选方案仍可能亏损，最差 {{signedMoney(transfer.plan.worstProfitCents)}}；“允许亏损”目标会优先减少转出。</p>
             <p v-if="transfer.plan.exceedsStake" class="transfer-warning">部分玩家赔付较高，建议打出金额超过该号收到的投注，需额外资金。</p>
           </template>
+          </template>
           <p>按当前日期、当前市场同一期测算；账目或已保存赔率、退水变化后自动重算。利润取决于完整账目及实际转出、结算。</p>
           <p v-if="transferBook.plan.zeroRebateStakeCents" class="transfer-warning">其中 ¥ {{money(transferBook.plan.zeroRebateStakeCents)}} 投注按当前玩家设置退水0%，请确认与实际一致。</p>
           <p v-if="!transferBook.plan.confirmedOdds" class="transfer-warning">当前市场赔率尚未确认，请先核对。</p>
           <p v-if="transferBook.plan.issueCount" class="transfer-warning">有 {{transferBook.plan.issueCount}} 项原文问题待核对，方案仅包含已解析的特码。</p>
         </template>
       </section>
-    <slot :plan="transfer.plan" :enabled="transferEnabled" :transfer-by-number="transferByNumber" :profit-by-number="profitByNumber" :profit-label="profitLabel" :signed-money="signedMoney" />
+    <slot :plan="transfer.plan" :enabled="transferEnabled" :transfer-by-number="transferByNumber" :profit-by-number="profitByNumber" :profit-label="profitLabel" :signed-money="signedMoney" :actual-by-number="actualByNumber" :transfer-label="transferLabel" :journal-mode="transferEnabled&&journalMode" :show-supplement="!journalMode||!!journalState?.showProposal" />
   </div>
 </template>
 

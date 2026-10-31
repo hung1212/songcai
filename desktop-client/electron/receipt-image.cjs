@@ -19,7 +19,7 @@ module.exports=function install({electron,window,startupCheck=false}){
     const {buffer,image,width,height}=decodeReceiptPng(input.dataUrl,nativeImage);
     // Native smoke checks export to their isolated profile, never overwrite the
     // user's clipboard or open a save dialog.
-    if(startupCheck){await fs.writeFile(path.join(app.getPath('userData'),'receipt-startup.png'),buffer);return {copied:input.action==='copy',saved:input.action==='save',width,height};}
+    if(startupCheck){await fs.writeFile(path.join(app.getPath('userData'),input.name==='分段投注表.png'?'segments-startup.png':'receipt-startup.png'),buffer);return {copied:input.action==='copy',saved:input.action==='save',width,height};}
     if(input.action==='copy'){clipboard.writeImage(image);return {copied:true,width,height};}
     const name=String(input.name||'账目结算单.png').replace(/[\\/:*?"<>|\u0000-\u001f]/g,'_').slice(0,160).replace(/(?:\.png)?$/i,'.png');
     const result=await dialog.showSaveDialog(window(),{title:'保存账目结算单',defaultPath:path.join(app.getPath('downloads'),name),filters:[{name:'PNG 图片',extensions:['png']}]});

@@ -6,7 +6,7 @@ contextBridge.exposeInMainWorld('songcai', {
     const invoke=(channel,payload)=>ipcRenderer.invoke(channel,{spaceId,payload});
     return {
       ai:Object.fromEntries(['load','configure','test','cached','review','cancel','history','remember','removeAlias'].map(name=>[name,input=>invoke(`ai:${name}`,input)])),
-      settlement:Object.fromEntries(['players','load','settings','sync','manual','preview','save','get','openSource'].map(name=>[name,input=>invoke(`settlement:${name}`,input)])),
+      settlement:Object.fromEntries(['players','load','settings','sync','manual','preview','save','get','openSource','transferList','transferAdd','transferVoid','transferDelete'].map(name=>[name,input=>invoke(`settlement:${name}`,input)])),
       inbox:Object.fromEntries(['list','get','create','update','confirm','skip','asset','clipboard','images','reocr','status','permission','windows','preview','capture','stop','export','restore'].map(name=>[name,input=>invoke(`inbox:${name}`,input)])),
       readDraft:()=>invoke('project:read-draft'),writeDraft:input=>invoke('project:write-draft',input),
       backupDraft:input=>invoke('project:backup-draft',input),
@@ -16,7 +16,7 @@ contextBridge.exposeInMainWorld('songcai', {
   },
   receiptImage: input => ipcRenderer.invoke('receipt:image',input),
   ai: Object.fromEntries(['load','configure','test','cached','review','cancel','history','remember','removeAlias'].map(name=>[name,input=>ipcRenderer.invoke(`ai:${name}`,input)])),
-  settlement: Object.fromEntries(['players','load','settings','sync','manual','preview','save','get','openSource'].map(name => [name, input => ipcRenderer.invoke(`settlement:${name}`, input)])),
+  settlement: Object.fromEntries(['players','load','settings','sync','manual','preview','save','get','openSource','transferList','transferAdd','transferVoid','transferDelete'].map(name => [name, input => ipcRenderer.invoke(`settlement:${name}`, input)])),
   inbox: Object.fromEntries(['list', 'get', 'create', 'update', 'confirm', 'skip', 'asset', 'clipboard', 'images', 'reocr', 'status', 'permission', 'windows', 'preview', 'capture', 'stop', 'export', 'restore'].map(name => [name, input => ipcRenderer.invoke(`inbox:${name}`, input)])),
   onInboxChanged: callback => {
     const listener = (_event, value) => callback(value);
