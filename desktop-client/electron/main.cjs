@@ -20,6 +20,11 @@ if(!primary)app.quit();
 else {
 app.on('second-instance',()=>{if(win){if(win.isMinimized())win.restore();win.show();win.focus();}});
 app.whenReady().then(async () => {
+  const {navigationUrl}=await import('../src/core/launch-navigation.js');
+  ipcMain.handle('navigation:open',async(event,input)=>{
+    if(event.sender!==win?.webContents)throw new Error('未知窗口');
+    await require('electron').shell.openExternal(navigationUrl(input));
+  });
   require('./receipt-image.cjs')({electron:require('electron'),window:()=>win,startupCheck});
   spaces = await require('./space-store.cjs').openSpaces(app.getPath('userData'));
   recovery = new (require('./draft-recovery.cjs').DraftRecovery)(app.getPath('userData'),spaces.core);
@@ -113,11 +118,16 @@ app.whenReady().then(async () => {
     return true;
   });
   const createWindow = () => {
-    win = new BrowserWindow({ show: !startupCheck, width: 1480, height: 960, minWidth: 1060, minHeight: 700, title: '松财 · 玩家算账', backgroundColor: '#f6f7f8',
+    win = new BrowserWindow({ show: !startupCheck, width: 1480, height: 960, minWidth: 1060, minHeight: 700, title: '上网导航', backgroundColor: '#f6f7f8',
       webPreferences: { preload: path.join(__dirname, 'preload.cjs'), contextIsolation: true, nodeIntegration: false, sandbox: true,
         additionalArguments: startupCheck ? ['--songcai-startup-check', ...(process.argv.includes('--draw-network-check') ? ['--songcai-draw-network-check'] : [])] : [] } });
     win.setMenuBarVisibility(false);
     closeDraft.attach(win);
+    // A full reload creates a fresh navigation page with no draft listener.
+    // In-page category links keep the current renderer and save handshake.
+    win.webContents.on('did-start-navigation',(_event,_url,inPlace,mainFrame)=>{
+      if(mainFrame&&!inPlace)win.canFlushDraft=false;
+    });
     win.webContents.setWindowOpenHandler(() => ({ action: 'deny' }));
     win.webContents.on('will-navigate', event => event.preventDefault());
     win.loadFile(path.join(__dirname, '../dist/index.html'));

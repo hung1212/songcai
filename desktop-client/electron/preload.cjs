@@ -1,5 +1,6 @@
 const { contextBridge, ipcRenderer } = require('electron');
 contextBridge.exposeInMainWorld('songcai', {
+  openNavigation: input => ipcRenderer.invoke('navigation:open',input),
   spaces: Object.fromEntries(['list','create','activate','rename','archive'].map(name=>[name,input=>ipcRenderer.invoke(`spaces:${name}`,input)])),
   recovery:{list:()=>ipcRenderer.invoke('recovery:list'),restore:id=>ipcRenderer.invoke('recovery:restore',id)},
   forSpace: spaceId => {

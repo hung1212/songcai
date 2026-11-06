@@ -18,6 +18,7 @@ module.exports = function startupCheck({ app, ipcMain }) {
   const draftPath = path.join(directory, 'draft.json');
   // The legacy file is a migration fixture and must remain untouched.
   fs.writeFileSync(draftPath, JSON.stringify({ ...expected, mustDisappearOnSave: true }));
+  if(process.argv.includes('--navigation-close-check'))return require('./navigation-close-check.cjs')({app,ipcMain,directory,draftPath});
   const stages = { pageLoaded: false, rendererInitialized: false, firstPaint: false, interfaceVerified: false, settlementVerified: false, semanticAIVerified:false, latestDrawVerified:false, parserStructure:false,parserUpgrade:false,codexDefault:false,draftSavedOnQuit: false };
   if(conflictCheck)dialog.showMessageBox=async(_win,options)=>{
     assert(options.buttons.includes('保留原文副本并退出'),'关闭冲突时没有安全退出按钮');
@@ -53,7 +54,10 @@ module.exports = function startupCheck({ app, ipcMain }) {
   });
   app.on('web-contents-created', (_event, contents) => {
     contents.on('console-message', details => { if(details.level==='error') console.error('SONGCAI_RENDERER_DIAGNOSTIC',details.message);else if(details.message.startsWith('SONGCAI_EDITING_PERFORMANCE '))console.log(details.message); });
-    contents.once('did-finish-load', () => { stages.pageLoaded = true; maybeQuit(); });
+    contents.once('did-finish-load', async () => {
+      try{stages.navigationGateUI=await require('./navigation-startup-check.cjs')(contents);stages.pageLoaded=true;maybeQuit();}
+      catch(error){fail(error.stack||error.message);}
+    });
     contents.on('did-fail-load', (_event, code, description) => fail(`页面加载失败 ${code}: ${description}`));
     contents.on('preload-error', (_event, _path, error) => fail(`preload: ${error.message}`));
     contents.on('render-process-gone', (_event, details) => { if (!finished) fail(`renderer: ${details.reason}`); });

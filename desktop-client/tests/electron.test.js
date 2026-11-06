@@ -4,6 +4,7 @@ import { EventEmitter } from 'node:events';
 import fs from 'node:fs/promises';
 import path from 'node:path';
 import vm from 'node:vm';
+import {fileURLToPath} from 'node:url';
 import installReceipt from '../electron/receipt-image.cjs';
 import closeDraft from '../electron/close-draft.cjs';
 
@@ -11,13 +12,14 @@ async function harness(writeFile = async () => {}, {primary=true}={}) {
   const ipcMain = new EventEmitter();
   const handlers = new Map();
   ipcMain.handle = (name, fn) => handlers.set(name, fn);
+  let initialization;
   const app = Object.assign(new EventEmitter(), {
-    requestSingleInstanceLock:()=>primary,whenReady: async () => {}, getPath: () => '/tmp/songcai-test', quit() { this.quitCalled = true; },
+    requestSingleInstanceLock:()=>primary,whenReady:()=>({then:fn=>initialization=Promise.resolve().then(fn)}), getPath: () => '/tmp/songcai-test', quit() { this.quitCalled = true; },
   });
   let win;
   class BrowserWindow extends EventEmitter {
-    constructor() {
-      super(); win = this;
+    constructor(options) {
+      super(); win = this;this.options=options;
       this.webContents = Object.assign(new EventEmitter(), {
         setWindowOpenHandler() {}, isDestroyed: () => false,
         send: name => this.sent.push(name),
@@ -36,9 +38,9 @@ async function harness(writeFile = async () => {}, {primary=true}={}) {
       this.closed = !prevented;
     }
   }
-  const renames = [],backups=[];
+  const renames = [],backups=[],opened=[];
   const modules = {
-    electron: { app, BrowserWindow, ipcMain, dialog: {showMessageBox:async()=>({response:0})} },
+    electron: { app, BrowserWindow, ipcMain, dialog: {showMessageBox:async()=>({response:0})},shell:{openExternal:async url=>{opened.push(url);}} },
     './close-draft.cjs':closeDraft,
     './draft-recovery.cjs':{DraftRecovery:class{save(_space,input){backups.push(input);return {id:'backup'};}saved(){}hasCurrent(id){return id==='backup';}close(){}}},
     'node:path': path,
@@ -52,10 +54,32 @@ async function harness(writeFile = async () => {}, {primary=true}={}) {
   };
   vm.runInNewContext(await fs.readFile(new URL('../electron/main.cjs', import.meta.url), 'utf8'), {
     require: id => modules[id], __dirname: '/app/electron', process: { platform: 'darwin', argv: [] }, TextDecoder,
-  });
-  await new Promise(resolve => setImmediate(resolve));
-  return { app, win, ipcMain, renames, backups,call: (name, ...args) => handlers.get(name)({ sender: win.webContents }, ...args) };
+  },{filename:fileURLToPath(new URL('../electron/main.cjs',import.meta.url)),importModuleDynamically:vm.constants.USE_MAIN_CONTEXT_DEFAULT_LOADER});
+  await initialization;
+  return { app, win, ipcMain, renames, backups,opened,handlers,call: (name, ...args) => handlers.get(name)({ sender: win.webContents }, ...args) };
 }
+
+test('导航首页关闭不触发原文保存，初始窗口标题只显示上网导航',async()=>{
+  const h=await harness(async()=>{throw new Error('导航页面不应保存账目');});
+  assert.equal(h.win.options.title,'上网导航');h.win.close();assert(h.win.closed);assert.deepEqual(h.win.sent,[]);
+});
+
+test('完整刷新后导航页清除旧保存握手，页内跳转仍保留保存流程',async()=>{
+  const h=await harness();h.ipcMain.emit('project:flush-ready',{sender:h.win.webContents});
+  h.win.webContents.emit('did-start-navigation',{},'file:///app/index.html#navigation-featured',true,true);
+  assert.equal(h.win.canFlushDraft,true);
+  h.win.webContents.emit('did-start-navigation',{},'file:///app/index.html',false,true);
+  assert.equal(h.win.canFlushDraft,false);h.win.close();assert(h.win.closed);assert.deepEqual(h.win.sent,[]);
+});
+
+test('导航真实 IPC 只允许当前窗口打开预设站点或百度搜索',async()=>{
+  const h=await harness();
+  await h.call('navigation:open',{siteId:'bilibili'});await h.call('navigation:open',{query:'地图 & 天气'});
+  assert.deepEqual(h.opened,['https://www.bilibili.com/','https://www.baidu.com/s?wd='+encodeURIComponent('地图 & 天气')]);
+  await assert.rejects(h.call('navigation:open',{url:'file:///C:/Windows'}),/无效的网址/);
+  await assert.rejects(h.handlers.get('navigation:open')({sender:{}},{siteId:'baidu'}),/未知窗口/);
+  assert.equal(h.opened.length,2);
+});
 
 test('桌面关闭会等待草稿落盘；连续写入按顺序保存最后一版', async () => {
   let release;

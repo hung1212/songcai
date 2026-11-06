@@ -1,4 +1,5 @@
 <script setup>
+import {version as appVersion} from '../package.json';
 import { computed, nextTick, onMounted, onBeforeUnmount, ref, shallowRef, watch, provide } from 'vue';
 import { parseDocument, summarize } from './core/parser.js';
 import { ledgerOwnedDocument, ledgerOwner } from './core/ledger-owner.js';
@@ -1296,7 +1297,7 @@ defineExpose({flush:flushWorkspace,backup:backupWorkspace,currentView:()=>view.v
           <button aria-label="生肖分类" @click="view='zodiac'">生肖分类</button>
           <button @click="showHelp">使用说明</button>
         </div></details>
-      </nav><span class="navigation-local">本地存储 <small>v0.6.35</small></span>
+      </nav><span class="navigation-local">本地存储 <small>v{{appVersion}}</small></span>
     </header>
     <dialog ref="clearDialog" class="clear-ledger-dialog" aria-label="清空本空间账目内容" @cancel="clearBusy&&$event.preventDefault()">
       <h2>清空“{{space.name}}”的 {{documents.length}} 份账目内容？</h2>
