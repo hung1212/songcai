@@ -214,3 +214,6 @@
 .entry-workspace .highlight-viewport{scrollbar-width:none}
 .entry-workspace .source-editor.highlight-preparing .highlight-viewport{display:block;visibility:hidden}
 .entry-workspace .line-numbers{padding-bottom:28px}
+
+.weak-notice-note{margin:0 0 14px;padding:12px 14px;border:1px solid #bfdbfe;border-radius:10px;background:#eff6ff;color:#1e40af;font-size:13px;line-height:1.6;}
+.issue-card.warning{border-color:#bfdbfe;background:#f8fbff}.issue-card.warning .issue-icon{background:#e0edff;color:#2563eb}

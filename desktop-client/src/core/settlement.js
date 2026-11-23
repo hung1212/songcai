@@ -5,7 +5,7 @@ import {rebatePlayKey} from './rebate-plays.js';
 import {ledgerOwnedDocument,ledgerOwnerSettings} from './ledger-owner.js';
 export { validateRebates } from './rebates.js';
 
-export const SETTLEMENT_VERSION = 'songcai-settlement-4';
+export const SETTLEMENT_VERSION = 'songcai-settlement-5';
 import {validateOdds,TWO_NUMBER_SPECIAL_RATE,TWO_NUMBER_SPECIAL_TOGGLE} from './odds.js';
 import {effectivePlayerOdds,validatePlayerOdds} from './player-odds.js';
 export {RATE_ROWS,defaultOdds,validateOdds,withOptionalOdds} from './odds.js';
@@ -97,6 +97,10 @@ export function settleDocuments(documents, draws, settings, date, options = {}) 
         const animal=ruleForDate(draw?.date||bet.businessDate).animal;
         const specialStake=bet.values.filter(value=>value===animal).length*bet.unitCents;
         entry.rebateLots=[{playKey:'flat-zodiac',stakeCents:bet.perMarketCents-specialStake},{playKey:'flat-zodiac-year',stakeCents:specialStake}].filter(lot=>lot.stakeCents>0);
+      }
+      if(bet.playType==='flat-tail'&&['won','lost'].includes(result.status)){
+        const zeroStake=bet.values.filter(value=>value===0).length*bet.unitCents;
+        entry.rebateLots=[{playKey:'flat-tail-zero',stakeCents:zeroStake},{playKey:'flat-tail-nonzero',stakeCents:bet.perMarketCents-zeroStake}].filter(lot=>lot.stakeCents>0);
       }
       entries.push(entry);stake+=BigInt(entry.stakeCents);
       if(!players.has(playerId))players.set(playerId,{id:playerId,name:bet.player,stakeCents:0,payoutCents:0,pending:0,markets:Object.fromEntries(MARKETS.map(m=>[m,{stakeCents:0,payoutCents:0,pending:0}]))});

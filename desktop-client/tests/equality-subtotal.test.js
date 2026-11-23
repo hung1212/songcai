@@ -26,12 +26,12 @@ test('单等号投注单价和单独一行合计保留原含义',()=>{
   const p=parse('01=30');assert.deepEqual(p.issues,[]);assert.equal(p.bets[0].unitCents,3000);assert(!p.metadata.some(m=>m.kind==='金额声明'));
   assert.deepEqual(parse('01 02各5\n=10').issues,[]);
 });
-test('正确等号小计清除已失效的AI提示，金额不符及真实错误继续待核对',()=>{
+test('等号合计无需AI确认，真实选号错误继续待处理',()=>{
   for(const text of [source,'雨：01各10\n02各20=30'])for(const status of ['pending','failed','review']){
     const d=doc(text),line=d.text.split('\n').length;d.assistance=assistanceFor(d,[{line,source:text.split('\n').at(-1),status,required:true,replacement:'',candidates:[]}]);
     assert.deepEqual(parseDocument(text,d).issues,[]);assert.equal(currentReviewItems(d)[0].requiresAction,false);assert.equal(currentReviewItems(d)[0].localResolved,true);
   }
-  for(const text of ['01 02各5=11','01各5，99各10=5']){
+  for(const text of ['01各5，99各10=5']){
     const d=doc(text);d.assistance=assistanceFor(d,[{line:1,source:text,status:'failed',required:true,replacement:'',candidates:[]}]);assert(currentReviewItems(d)[0].requiresAction);
   }
   const d=doc();d.parserVersion='parser-20261019-1';d.assistance={...assistanceFor(d,[{line:2,source:source.split('\n')[1],status:'review',replacement:'',candidates:[]}]),version:'semantic-20261019-1'};const next=upgradeDocument(d);assert.equal(next.text,source);assert.deepEqual(parseDocument(next.text,next).issues,[]);

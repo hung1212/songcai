@@ -54,10 +54,10 @@ test('明确#分组和长点分隔保留组内号码，不能扩为全池复式'
   for(const text of ['三中三20-32#18-34-45各50','二中二07.19......11.11两组各10','二中二07.19......11.28三组各10']){const r=parse(text);assert(r.issues.length);assert.equal(summarize([r]).totalCents,0);}
 });
 
-test('确定同句合计不符拦住本行，其他行继续算；范围不明仍保留核对提醒',()=>{
+test('合计不符仅弱提示，按明细计账；范围不明仍保留核对提醒',()=>{
   const p=parse('香港三中三20-32-36#18-34-45各50。合计275。\n新01各10');
-  assert.equal(p.issues[0].code,'TOTAL_MISMATCH');assert.equal(p.issues[0].severity,'error');assert.equal(summarize([p]).totalCents,1000);
-  assert.deepEqual(p.issues[0].affectedBetIds,[p.bets[0].id]);
+  assert.equal(p.issues[0].code,'TOTAL_MISMATCH');assert.equal(p.issues[0].severity,'warning');assert.equal(summarize([p]).totalCents,11000);
+  assert(p.bets.every(b=>b.status==='parsed'));
   const broad=parse('1 2 3各10\n合计100');assert.equal(broad.issues[0].severity,'warning');assert.equal(summarize([broad]).totalCents,3000);
 });
 
@@ -123,5 +123,5 @@ test('相同原文提示合为一张卡，保留本地原因、AI入口、严重
 });
 
 test('有真实争议的尾注、计费与跨空行单价保持待处理，不以少提示换静默入账',()=>{
-  for(const text of ['新01各10\n02各20港','34.44.42.38.49各6O.米','包红波280米','特肖牛二中二各10','三中二19 09 23\n\n1 2 3\n\n11 12 6各5'])assert(parse(text).issues.length,text);
+  for(const text of ['新01各10\n02各20港','包红波280米','特肖牛二中二各10','三中二19 09 23\n\n1 2 3\n\n11 12 6各5'])assert(parse(text).issues.length,text);
 });

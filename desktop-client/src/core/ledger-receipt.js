@@ -1,3 +1,5 @@
+import {ledgerSegments} from './ledger-segments.js';
+import {segmentTableSvg} from './segment-table.js';
 import {MARKETS,WAVES,formatMoney,pad,ruleForDate,today} from './rules.js';
 import {normalizeSources,validateDraw} from './draws.js';
 import {settlementBalance} from './ledger-overview.js';
@@ -135,7 +137,16 @@ export function receiptWinningStakeLines(row) {
   return lines;
 }
 export const receiptRebateFormula=row=>row.turnoverCents===null?'历史记录未保存玩法明细':`有效流水 ${receiptMoney(row.turnoverCents)} · ${row.rate}`;
-export function receiptPages(receipt,{showPlayStakes=false}={}){
+// Use the original text and parsed bets from the SAME settlement snapshot.
+// Never reparse today's editor text for a historical receipt.
+export function receiptSegmentRows(inputs,result) {
+  const snapshot=inputs?.documents?.[0];
+  if(inputs?.kind!=='current'||inputs.documents.length!==1||snapshot?.id!==inputs.selection||typeof snapshot.originalText!=='string')throw new Error('这份结算未保存分段原文，无法附表；请取消勾选或重新计算当前账目');
+  const data=ledgerSegments({...snapshot,text:snapshot.originalText},snapshot,result);
+  if(!data.ready||!data.settlementReady||data.stakeCents!==result.stakeCents)throw new Error(data.error||'分段金额与结算总额不一致，请重新计算');
+  return data.rows.map(({index,stakeCents})=>({index,stakeCents}));
+}
+export function receiptPages(receipt,{showPlayStakes=false,showSegments=false,showName=false}={}){
   const rebateRows=receipt.rebateRows||[],playStakeRows=receipt.playStakeRows||[];
   const winningPages=[[]];let winningHeight=0;
   for(const row of receipt.rows){
@@ -148,16 +159,31 @@ export function receiptPages(receipt,{showPlayStakes=false}={}){
     }
   }
   const total=Math.max(1,winningPages.length,Math.ceil(rebateRows.length/18),showPlayStakes?Math.ceil(playStakeRows.length/18):0);
-  return Array.from({length:total},(_,i)=>({...receipt,rows:winningPages[i]||[],rebateRows:rebateRows.slice(i*18,(i+1)*18),
+  const pages=Array.from({length:total},(_,i)=>({...receipt,rows:winningPages[i]||[],rebateRows:rebateRows.slice(i*18,(i+1)*18),
     playStakeRows:playStakeRows.slice(i*18,(i+1)*18),playStakeRowCount:playStakeRows.length,
-    winningRowCount:receipt.rows.length,rebateRowCount:rebateRows.length,page:i+1,pages:total}));
+    winningRowCount:receipt.rows.length,rebateRowCount:rebateRows.length,segmentRows:[],page:i+1,pages:total}));
+  if(showSegments&&receipt.segmentRows?.length){
+    let remaining=receipt.segmentRows.slice(),target=pages.at(-1);
+    while(remaining.length){
+      // Stay inside the 2x PNG clipboard limit, even with all receipt options.
+      const base=receiptSvg(target,{showName,showPlayStakes}).height;
+      const capacity=Math.min(120,Math.floor((7400-base-70)/30));
+      if(capacity>0)target.segmentRows=remaining.splice(0,capacity);
+      if(remaining.length){
+        target={...pages[0],rows:[],rebateRows:[],playStakeRows:[],segmentRows:[]};
+        if(capacity<=0&&pages.at(-1).rows.length===0&&pages.at(-1).rebateRows.length===0&&pages.at(-1).playStakeRows.length===0)throw new Error('结算图片过长，请关闭账单名显示后重试');
+        pages.push(target);
+      }
+    }
+  }
+  return pages.map((p,i)=>({...p,page:i+1,pages:pages.length}));
 }
 const escape=value=>String(value).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&apos;'}[c]));
 
 // Shared SVG preview and PNG source ensure the exported card has exactly the
 // same content. Name visibility is a presentation preference, never a change
 // to the saved settlement or its historical account name.
-export function receiptSvg(card,{showName=false,showPlayStakes=false}={}) {
+export function receiptSvg(card,{showName=false,showPlayStakes=false,showSegments=false}={}) {
   const parts=[];let y=40;
   const text=(x,baseline,value,size=20,color='#243e36',weight=400,anchor='start',maxWidth)=>parts.push(`<text x="${x}" y="${baseline}" font-size="${size}" fill="${color}" font-weight="${weight}" text-anchor="${anchor}"${maxWidth&&String(value).length*size*.62>maxWidth?` textLength="${maxWidth}" lengthAdjust="spacingAndGlyphs"`:''}>${escape(value)}</text>`);
   const rect=(x,top,width,height,color,r=0)=>parts.push(`<rect x="${x}" y="${top}" width="${width}" height="${height}" rx="${r}" fill="${color}"/>`);
@@ -240,6 +266,11 @@ export function receiptSvg(card,{showName=false,showPlayStakes=false}={}) {
   rect(32,y,576,114,card.netCents<0?'#fcf1ec':card.netCents===null?'#fff5e5':'#eaf4ed',14);
   text(52,y+34,`${card.netLabel} · 玩家净输赢`,20,netColor,600);
   text(52,y+83,card.netCents===null?'待结算':`${card.netCents>0?'+':card.netCents<0?'−':''}${receiptMoney(Math.abs(card.netCents))}`,38,netColor,700,'start',530);y+=138;
+  if(showSegments&&card.segmentRows?.length){
+    const table=segmentTableSvg(card.segmentRows,{columnWidth:576});
+    parts.push(`<g data-receipt-segments="true" transform="translate(16 ${y})">${table.svg}</g>`);
+    y+=table.height;
+  }
   return {width:640,height:y,svg:`<svg xmlns="http://www.w3.org/2000/svg" width="640" height="${y}" viewBox="0 0 640 ${y}" font-family="-apple-system, BlinkMacSystemFont, 'PingFang SC', 'Microsoft YaHei', sans-serif"><rect width="640" height="${y}" fill="#ffffff"/>${parts.join('')}</svg>`};
 }
 export const receiptFilename=card=>`${card.name.replace(/[\\/:*?"<>|\u0000-\u001f]/g,'_').slice(0,80)}-${card.date||'无开奖日期'}-结算单${card.pages>1?`-${card.page}`:''}.png`;

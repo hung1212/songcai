@@ -102,7 +102,7 @@ defineExpose({flush:save});
         <div class="rebate-default"><div><strong>玩家默认退水</strong><small>未单独设置的玩法使用这个值</small></div><label>每10,000元流水退 <input v-model="draft.default" :aria-label="selected.name+'每万元退水'" inputmode="decimal" placeholder="0 · 不退水" :disabled="busy||!settings" /> 元</label><b>{{percentage(draft.default)}}</b></div>
         <p class="rebate-explanation">例如每万元退100元＝1%，有效流水15,000元退150元。默认留空或填0为不退水。</p>
         <div class="rebate-play-toolbar"><strong>按玩法单独设置</strong><input v-model="playSearch" aria-label="搜索退水玩法" type="search" placeholder="搜索玩法" /><label><input v-model="overridesOnly" type="checkbox" />只看单独设置</label></div>
-        <p class="rebate-explanation">下方留空＝跟随玩家默认；填写0＝此玩法不退水。金额单位均为“每万元流水退多少元”。平特肖（本命年）留空时跟随“平特肖”退水；按所选开奖日期的农历年识别，今年本命生肖为{{yearAnimal}}。</p>
+        <p class="rebate-explanation">下方留空＝跟随玩家默认；填写0＝此玩法不退水。金额单位均为“每万元流水退多少元”。平特尾的0尾与非0尾独立设置；原来的平特尾退水率已分别沿用到两项，混投按各尾投注金额拆分计算。平特肖（本命年）留空时跟随“平特肖”退水；按所选开奖日期的农历年识别，今年本命生肖为{{yearAnimal}}。</p>
         <section v-for="g in groups" :key="g.name" class="rebate-play-group"><h3>{{g.name}}</h3><div class="rebate-play-grid"><label v-for="play in g.plays" :key="play.id" :class="['rebate-play-row',{'overridden':String(draft.plays[play.id]??'').trim()!==''}]"><span>{{play.name}}<small>{{String(draft.plays[play.id]??'').trim()!==''?'单独设置':play.id==='flat-zodiac-year'?'跟随平特肖':'跟随默认'}} · {{effective(play.id)}}</small></span><input v-model="draft.plays[play.id]" :aria-label="selected.name+' '+play.name+'每万元退水'" inputmode="decimal" :placeholder="play.id==='flat-zodiac-year'?'跟随平特肖':'默认 '+(draft.default||'0')" :disabled="busy||!settings" /></label></div></section>
         <p v-if="!groups.length" class="rebate-empty">没有符合条件的玩法。</p>
         </template>

@@ -1,4 +1,4 @@
-import {REBATE_PLAY_IDS,rebatePlayKey,rebatePlayName} from './rebate-plays.js';
+import {REBATE_PLAY_IDS,rebatePlayKey,rebatePlayName,splitTailRebateRates} from './rebate-plays.js';
 import {ledgerOwner} from './ledger-owner.js';
 // Rates are integer cents returned per 10,000 yuan of effective turnover.
 // 100 yuan / 10,000 yuan = 1%. All monetary arithmetic uses integer fractions.
@@ -13,10 +13,10 @@ export function validateRebates(input = {}) {
     if (!id || id.length > 1000 || !Number.isSafeInteger(value?.perTenThousandCents) || value.perTenThousandCents < 0 || value.perTenThousandCents > Number(BASE)) throw new Error('每万元退水须为0至10,000元，最多两位小数');
     const overrides=value.playRates??{};
     if(!overrides||typeof overrides!=='object'||Array.isArray(overrides))throw new Error('玩法退水设置格式无效');
-    const playRates=Object.fromEntries(Object.entries(overrides).map(([key,cents])=>{
+    const playRates=splitTailRebateRates(Object.fromEntries(Object.entries(overrides).map(([key,cents])=>{
       if(!REBATE_PLAY_IDS.has(key)||!Number.isSafeInteger(cents)||cents<0||cents>Number(BASE))throw new Error('玩法退水设置无效，须为0至10,000元，最多两位小数');
       return [key,cents];
-    }));
+    })));
     if(value.name!==undefined&&(typeof value.name!=='string'||value.name.length>1000))throw new Error('退水玩家名称无效');
     return value.perTenThousandCents||Object.keys(playRates).length||value.name ? [[id, {perTenThousandCents:value.perTenThousandCents,...(Object.keys(playRates).length?{playRates}:{}),...(value.name?{name:value.name}:{})}]] : [];
   }));

@@ -2,12 +2,12 @@ import {segmentCopyText} from './ledger-segments.js';
 
 // receiptPng renders at 2×. Keep even the longest sheet inside the native
 // clipboard's 2560×16000 / 24-million-pixel limit; never silently drop rows.
-export function segmentTableSvg(rows) {
+export function segmentTableSvg(rows,{columnWidth=300}={}) {
  if(!rows?.length)throw new Error('当前账目没有可复制的段落');
  if(rows.length>480)throw new Error('段落超过480段，单张图片放不下，请使用“复制金额文字”复制全部金额');
  const values=rows.map(row=>segmentCopyText(row).split(':'));
  const columns=Math.ceil(rows.length/120),perColumn=Math.ceil(rows.length/columns);
- const pad=16,columnWidth=300,gap=12,header=38,rowHeight=30;
+ const pad=16,gap=12,header=38,rowHeight=30;
  const width=pad*2+columns*columnWidth+(columns-1)*gap,height=pad*2+header+perColumn*rowHeight;
  const parts=[`<svg xmlns="http://www.w3.org/2000/svg" width="${width}" height="${height}" viewBox="0 0 ${width} ${height}"><rect width="100%" height="100%" fill="white"/><g font-family="Arial, PingFang SC, Microsoft YaHei, sans-serif" fill="#273d32">`];
  for(let col=0;col<columns;col++){

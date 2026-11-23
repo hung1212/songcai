@@ -22,13 +22,21 @@ const problem = (code, message, pending) => { throw new ParseProblem(code, messa
 
 export function normalize(input) {
   return normalizeDottedAmounts(canonicalPlayText(normalizeFinancial(stripLeadingIssuePrefix(input))).normalize('NFKC')).replace(/\uFEFF/g, '').replace(/[\u00a0\u200b]/g, ' ')
+    .replace(/一[ \t]*个[ \t]*(?:号码|数字|号|数)/g,'每号')
+    // A nested unit means each number within each zodiac, with one price.
+    .replace(/(?:各|每)肖\s*(?=(?:各|每)(?:个?(?:号码?|数字|数)))/g,'')
+    // The dot before a currency is punctuation; preserve actual decimals.
+    .replace(new RegExp(`((?:各|每)(?:个?(?:号码?|数字|数)|肖|尾|组|注)?\\s*${amountPattern})\\.\\s*(?=[元米块斤钱])`,'g'),'$1')
+    // Only a completed explicit numeric price can precede OCR's 二 (=).
+    .replace(/((?:各|每)(?:个?(?:号码?|数字|数)|肖|尾|组|注)?\s*\d+(?:\.\d{1,2})?\s*[元米块斤钱]?)\s*二(?=\s*\d)/g,'$1=')
+    .replace(/(=\s*\d+(?:\.\d{1,2})?\s*[元米块斤钱])一(?=\s*\d{1,2}\s*[+＋])/g,'$1，')
     // Keep number/group boundaries: dropping a slash would merge 05 and 14.
     .replace(/\\/g, '/')
     .replace(/[Oo\d]+/g, s => /\d/.test(s) ? s.replace(/[Oo]/g, '0') : s)
     .replace(/兔子/g, '兔').replace(/子鼠|老鼠/g, '鼠').replace(/免/g, '兔').replace(/猎/g, '猪').replace(/鸣/g, '鸡').replace(/奧/g, '奥')
     // A standalone 串 joins selections; 特串 remains an independent play.
     .replace(/(?<!特)串|对打|打/g, '拖')
-    .replace(/([0-9鼠牛虎兔龙蛇马羊猴鸡狗猪尾)）\]])\s*对(?=\s*[0-9鼠牛虎兔龙蛇马羊猴鸡狗猪(（\[])/g,'$1拖')
+    .replace(/([0-9鼠牛虎兔龙蛇马羊猴鸡狗猪尾)）\]])\s*对(?=\s*[0-9鼠牛虎兔龙蛇马羊猴鸡狗猪红蓝绿兰(（\[])/g,'$1拖')
     .replace(/(拖\s*)([零〇一二三四五六七八九])尾/g, (_,prefix,n) => prefix+chineseNumber(n)+'尾')
     .replace(/(?:老|旧)的(?=\s*[\d鼠牛虎兔龙蛇马羊猴鸡狗猪])/g, '旧')
     .replace(/(\d)\s*[一十]\s*(?=\d)/g, '$1-').replace(/[–—－]/g, '-')
@@ -66,12 +74,12 @@ function takePlay(input, inherited, allowDrag = false) {
   if (/取消|作废|撤回|撤单|改成|改为|不要|不买|不算|减半|翻倍|加倍|一半|半价/.test(text)) problem('BET_INSTRUCTION', '含取消、修改或金额调整指令，请明确最终投注后再计入');
   if (/特肖|独肖|(?:一|1)肖/.test(text.replace(/平特(?:一肖|肖)/g, ' ')) && new RegExp(`(?:${countPattern}中${countPattern}|${countPattern}(?:连肖|连码|连尾|不中)|特串|二中特|两中特|平码|平尾|平特(?:号码|尾)|任中)`).test(text)) problem('PLAY_CONFLICT', `同一笔同时出现${/(?<!平)特肖/.test(text)?'特肖':'平特肖'}和其他玩法，请明确玩法或拆成独立投注`);
   if (/(?<!平)特肖/.test(text) && /平特|平肖|平一肖/.test(text)) problem('PLAY_CONFLICT', '同一笔同时出现特肖和平特肖，请明确玩法或拆成独立投注');
-  if (/(?<![平中])(?:特码|特马)|单码|单调/.test(text) && new RegExp(`(?:特肖|独肖|平特|平码|任中|特串|${countPattern}(?:中${countPattern}|连肖|连码|连尾|不中|肖中特))`).test(text)) problem('PLAY_CONFLICT', '同一笔同时出现特码和其他玩法，请明确玩法或拆成独立投注');
+  if (/(?<![平中])(?:特码)|单码|单调/.test(text) && new RegExp(`(?:特肖|独肖|平特|平码|任中|特串|${countPattern}(?:中${countPattern}|连肖|连码|连尾|不中|肖中特))`).test(text)) problem('PLAY_CONFLICT', '同一笔同时出现特码和其他玩法，请明确玩法或拆成独立投注');
   const add = (type, label, size = 1, basis = '每组') => {
     if (!plays.some(p => p.type === type && p.size === size)) plays.push({ type, label, size, basis });
   };
   let explicit = false;
-  if (/拖/.test(text) && !allowDrag) problem('DAN_TUO', '拖号范围不明确，请按组列出；支持二中二或特串两组号码互拖、二中二单肖串多肖、单号拖尾、三中二双号拖尾数、二中二单尾拖生肖、二中二或特串单号拖生肖、特串单肖拖单肖、二连肖单肖或三连肖双肖拖多个生肖');
+  if (/拖/.test(text) && !allowDrag) problem('DAN_TUO', '拖号范围不明确，请按组列出；支持二中二或特串两组号码互拖、二中二单肖串多肖、单号拖尾、三中二双号拖尾数、二中二单尾拖生肖、二中二或特串一个或多个号码拖单生肖、特串单肖拖单肖、二连肖单肖或三连肖双肖拖多个生肖');
   const combined = new RegExp(`(${countPattern})肖中特`, 'g');
   text = text.replace(combined, (_, n) => { add('special-zodiac-any', `${n}肖中特`, chineseNumber(n), '整项'); return ' '; });
   if (!plays.length && /任中/.test(text)) {
@@ -133,8 +141,8 @@ function takePlay(input, inherited, allowDrag = false) {
       text = text.replace(/平(?:特)?(?:一肖|肖|尾|码)?|独肖|一肖|1肖/g, ' ');
     } else if (/包/.test(text) && !/各号|每号|各数|每个号码/.test(text)) {
       problem('PACKAGE_AMBIGUOUS', '“包”按号还是按生肖计费尚待确认，请补写“特肖”或“各号”');
-    } else if (/特码|特马|单码|单调|特/.test(text)) {
-      add('special-number', '特码', 1, '每号'); text = text.replace(/特码|特马|单码|单调|特/g, ' ');
+    } else if (/特码|单码|单调|特/.test(text)) {
+      add('special-number', '特码', 1, '每号'); text = text.replace(/特码|单码|单调|特/g, ' ');
     }
   }
   if (!plays.length) {
@@ -380,6 +388,29 @@ function expandLinkedZodiacGroups(selection, play) {
 
 // Store drags as explicit groups. Settlement must never recombine the fixed
 // and trailing selections into an unrestricted pool.
+function waveNumberDrag(selection,play,input,rule) {
+  if(!input.includes('拖')||!/[红蓝绿]/.test(selection))return null;
+  if(!['linked-number-2-2','special-pair'].includes(play.type)||/复式|胆拖/.test(input))problem('DAN_TUO','波色对拖需明确二中二或特串两侧选号，不能与复式混用');
+  if(/(?:各|每)(?:肖|尾|个?(?:号码?|数字|数))/.test(input))problem('BASIS_CONFLICT','波色对拖按每组计费，请明确每组金额');
+  const sides=cleanEdges(selection).replace(/[:：]\s*$/,'').split('拖');
+  if(sides.length!==2)problem('DAN_TUO','波色对拖需要两侧选号');
+  const pools=sides.map(side=>{
+    let body=cleanEdges(side);
+    if(body.startsWith('(')&&body.endsWith(')'))body=cleanEdges(body.slice(1,-1));
+    const wave=body.match(/^([红蓝绿])(?:波)?([单双大小])?(?:波)?(?:号码|数|号)?$/);
+    if(wave)return parseSelections(body,{type:'special-number'},rule).values;
+    if(!/^\d+\s*号?(?:[\s,，.、/·-]+\d+\s*号?)*$/.test(body))problem('DAN_TUO','波色对拖两侧须为明确号码列表或单一波色分类，不猜测混合分类');
+    const tokens=body.match(/\d+/g),values=tokens.map(Number);
+    if(tokens.some(n=>n.length>2)||values.some(n=>n<1||n>49))problem('NUMBER_RANGE','对拖号码须为01–49');
+    if(new Set(values).size!==values.length)problem('DAN_TUO','对拖同侧有重复号码，请明确重复份数');
+    return values;
+  });
+  const [anchors,numbers]=pools,groups=anchors.flatMap(a=>numbers.filter(b=>b!==a).map(b=>[a,b]));
+  if(!groups.length)problem('INSUFFICIENT_SELECTION','对拖没有可组成的不同号码');
+  if(new Set(groups.map(g=>[...g].sort((a,b)=>a-b).join(','))).size!==groups.length)problem('DAN_TUO','对拖两侧重叠造成重复组，请明确重复份数');
+  return {ruleId:'R64',anchors,numbers,excluded:anchors.filter(n=>numbers.includes(n)),groups};
+}
+
 function defaultNumberDrag(selection, play, input, rule) {
   if(!play.implicitDrag||!input.includes('拖'))return null;
   if(/复式|胆拖/.test(input))problem('DAN_TUO','串拖和复式不能混用，请明确分组');
@@ -414,7 +445,7 @@ function defaultNumberDrag(selection, play, input, rule) {
 
 function selectionDrag(selection, play, input, rule) {
   if (!/拖/.test(input)) return null;
-  const unsupported = '当前支持二中二或特串两组号码互拖、二中二单肖串多肖、单号拖尾、三中二双号拖尾数、二中二单尾拖生肖、二中二或特串单号拖生肖、特串单肖拖单肖、二连肖单肖拖生肖及三连肖双肖拖生肖；其他拖法请明确列出每组';
+  const unsupported = '当前支持二中二或特串两组号码互拖、二中二单肖串多肖、单号拖尾、三中二双号拖尾数、二中二单尾拖生肖、二中二或特串一个或多个号码拖单生肖、特串单肖拖单肖、二连肖单肖拖生肖及三连肖双肖拖生肖；其他拖法请明确列出每组';
   if (/复式|胆拖/.test(input)) problem('DAN_TUO', unsupported);
   if (['linked-number-2-2','special-pair'].includes(play.type) && !new RegExp(`${animalPattern}|尾`).test(selection)) {
     const label = play.type === 'special-pair' ? '特串' : '二中二';
@@ -519,16 +550,24 @@ function selectionDrag(selection, play, input, rule) {
     return {...(play.size===2?{ruleId:'R33',anchor:anchors[0]}:{ruleId:'R41',anchors}),animals,
       ...(repeatedAnimals.length?{repeatedAnimals}:{}),groups:animals.map(animal=>[...anchors,animal])};
   }
-  const match = cleanEdges(selection).match(new RegExp(`^(\\d{1,2})\\s*(?:号)?\\s*拖\\s*(${animalPattern})\\s*(?:肖)?\\s*[:：]?$`));
-  if (!['linked-number-2-2', 'special-pair'].includes(play.type) || !match) {
-    problem('DAN_TUO', unsupported);
-  }
+  const match = cleanEdges(selection).match(new RegExp(`^([^拖]+)拖\\s*(${animalPattern})\\s*(?:肖)?\\s*[:：]?$`));
+  if (!['linked-number-2-2', 'special-pair'].includes(play.type) || !match) problem('DAN_TUO', unsupported);
   if (/(?:各|每)(?:肖|尾|个?(?:号码?|数字|数))/.test(input)) problem('BASIS_CONFLICT', `${play.label}拖号按每组计费，请写“各10”或“每组10”，不能按每肖或每号计费`);
-  const anchor = Number(match[1]), animal = match[2];
-  if (anchor < 1 || anchor > 49) problem('NUMBER_RANGE', `“${match[1]}”超出01–49号码范围`);
-  const numbers = rule.zodiac[animal].filter(number => number !== anchor);
-  return { ruleId: play.type === 'special-pair' ? 'R34' : 'R30', anchor, animal, numbers, excluded: rule.zodiac[animal].includes(anchor) ? [anchor] : [],
-    groups: numbers.map(number => [anchor, number]) };
+  let body=cleanEdges(match[1]);
+  if(body.startsWith('(')&&body.endsWith(')'))body=cleanEdges(body.slice(1,-1));
+  if(!/^\d+\s*号?(?:[\s,，.、/·-]+\d+\s*号?)*$/.test(body))problem('DAN_TUO','拖生肖前侧需为明确号码列表，例如“01.13.49串狗二连一组五十”');
+  const tokens=body.match(/\d+/g),anchors=tokens.map(Number),animal=match[2];
+  if(tokens.some(n=>n.length>2)||anchors.some(n=>n<1||n>49))problem('NUMBER_RANGE','拖生肖号码须为01–49，不拆分或补造号码');
+  if(new Set(anchors).size!==anchors.length)problem('DAN_TUO','拖生肖前侧有重复号码，请明确重复份数或按组列出');
+  const numbers=rule.zodiac[animal],excluded=anchors.filter(n=>numbers.includes(n));
+  const groups=anchors.flatMap(anchor=>numbers.filter(number=>number!==anchor).map(number=>[anchor,number]));
+  const keys=groups.map(group=>[...group].sort((a,b)=>a-b).join(','));
+  if(new Set(keys).size!==groups.length)problem('DAN_TUO','两侧号码重叠造成同一组重复，请明确重复份数或按组列出');
+  if(anchors.length===1){
+    const anchor=anchors[0];
+    return {ruleId:play.type==='special-pair'?'R34':'R30',anchor,animal,numbers:numbers.filter(n=>n!==anchor),excluded,groups};
+  }
+  return {ruleId:'R63',anchors,animal,numbers:[...numbers],excluded,groups};
 }
 
 // Two named zodiac pools in a special pair cross with each other. Keep each
@@ -581,7 +620,7 @@ function resolveBet(input, state, rule) {
     const tailSelection = expandLinkedTailGroups(amountSelection, play);
     const selection = expandLinkedZodiacGroups(tailSelection, play);
     const cross = specialPairZodiacCross(selection, play, input, rule);
-    const drag = cross ? null : defaultNumberDrag(selection,play,input,rule) || selectionDrag(selection, play, input, rule);
+    const drag = cross ? null : waveNumberDrag(selection,play,input,rule) || defaultNumberDrag(selection,play,input,rule) || selectionDrag(selection, play, input, rule);
     const grouped = drag || cross;
     if (['R53','R54','R55'].includes(grouped?.ruleId)) play.label='二中二';
     if (/拖/.test(input) && parsed.plays.length !== 1) problem('DAN_TUO', '拖号请单独声明一种玩法，不混合其他玩法');
@@ -711,6 +750,21 @@ function splitClauses(text) {
   }
   if (cleanEdges(text.slice(from))) chunks.push(text.slice(from));
   return chunks.length ? chunks : [text];
+}
+
+// A priced section followed by =total ends before the next selection. A
+// single trailing equation keeps the existing cross-line subtotal scope.
+function inlineSubtotalSections(text) {
+  const sections=[]; let from=0;
+  const equation=new RegExp(`[=＝]\\s*(${amountPattern})\\s*(?:${units})?`,'g');
+  for(const match of text.matchAll(equation)) {
+    const body=text.slice(from,match.index),price=[...body.matchAll(explicitMoney)].at(-1);
+    if(!price||!onlyNoise(body.slice(price.index+price[0].length)))continue;
+    sections.push({text:body,declared:match});from=match.index+match[0].length;
+  }
+  if(!sections.length||sections.length===1&&onlyNoise(text.slice(from)))return null;
+  if(!onlyNoise(text.slice(from)))sections.push({text:text.slice(from)});
+  return sections;
 }
 
 const nonBet = text => /^(?:\[.*\]|S|i|œ|无|外面|\p{Extended_Pictographic}+)$|这条(?:是)?\d|加个提示|一起买$/u.test(text);
@@ -929,7 +983,7 @@ export function parseDocument(rawText, options = {}) {
       // A standalone per-selection price belongs to preceding selections. If
       // none are pending, report just this line; do not consume the next bet.
       if (e.pending && !(e.code==='MISSING_SELECTION'&&/^(?:各|每)/.test(text))) return { text, line, endLine, raw, error: e };
-      addIssue(line, endLine, raw, e.code, e.message); return null;
+      addIssue(line, endLine, raw, e.code, e.message, 'error', {affectedBetIds:[],clause:text}); return null;
     }
   };
 
@@ -984,7 +1038,8 @@ export function parseDocument(rawText, options = {}) {
     text = text.replace(/[（(]?\s*(?:(?:一共|共)\s*(\d+|[一二三四五六七八九十两]+)\s*(码|个|组)|([一二三四五六七八九十两]+)组(?=\s*(?:各|每)))\s*[）)]?/g, (_, n, kind,groupCount) => { counts.push({ n: chineseNumber(n||groupCount), kind:kind||'组' }); return ' '; });
     const sum = text.match(new RegExp(`(?:总合计|合计|总共|共计|一共|共|等于|总|计|合)\\s*[:：=]?\\s*(${amountPattern})\\s*(?:${units})?`));
     const bareSum = text.match(new RegExp(`^[\\s。.,，]*[=＝]\\s*(${amountPattern})\\s*(?:${units})?[\\s。.,，]*$`));
-    const equation = text.match(new RegExp(`[=＝]\\s*(${amountPattern})\\s*(?:${units})?[\\s。.,，#＃;；]*$`));
+    const inlineSections = inlineSubtotalSections(text);
+    const equation = !inlineSections && text.match(new RegExp(`[=＝]\\s*(${amountPattern})\\s*(?:${units})?[\\s。.,，#＃;；]*$`));
     // An equality after an already priced bet is a subtotal, while 01=30
     // remains the existing shorthand for betting 30 on number 01.
     const previousPrice=equation&&[...text.slice(0,equation.index).matchAll(explicitMoney)].at(-1);
@@ -1039,7 +1094,9 @@ export function parseDocument(rawText, options = {}) {
       const headerPlay = declaredPlay(rest);
       if (headerPlay) { flush(); sectionBets=[]; if (m.markets.length) { state.markets = m.markets; state.marketSource = line; } state.play = {...headerPlay,declaration:true}; state.playSource={line,body:header?header.body:original}; meta(line, original, '玩法'); }
       else {
-        for (const chunk of splitClauses(text)) {
+        for (const section of inlineSubtotalSections(text)||[{text}]) {
+        const sectionStart=bets.length;
+        for (const chunk of splitClauses(section.text)) {
           const clauseMarket = marketInfo(chunk);
           if (clauseMarket.markets.length) { flush(); state.markets = clauseMarket.markets; state.marketSource = line; }
           const cleaned = cleanEdges(clauseMarket.text);
@@ -1053,6 +1110,16 @@ export function parseDocument(rawText, options = {}) {
             else { const previous = pending; pending = null; pending = process(previous.text + '\n' + cleaned, previous.line, line, previous.endLine === line ? previous.raw : previous.raw + '\n' + original); continue; }
           }
           pending = process(cleaned, line, line, original);
+        }
+        if(section.declared) {
+          const expected=Math.round(chineseNumber(section.declared[1])*100);
+          const local=bets.slice(sectionStart),actual=local.reduce((n,b)=>n+(b.status==='parsed'?b.totalCents:0),0);
+          meta(line,section.declared[0],'金额声明');
+          Object.assign(metadata.at(-1),{ruleId:'R50',inlineEquation:true,fromLine:line,toLine:line,expectedCents:expected,actualCents:actual});
+          if(!Number.isSafeInteger(expected)||expected<0)addIssue(line,line,original,'TOTAL_INVALID','声明的合计金额无效或超出精确计算范围','warning');
+          else if(!local.length)addIssue(line,line,original,'TOTAL_SCOPE','识别到合计金额，但没有可核对的投注范围','warning');
+          else if(actual!==expected)addIssue(line,line,original,'TOTAL_MISMATCH',`原文合计${expected/100}，第${line}行该小节已解析${actual/100}，相差${(actual-expected)/100}；按投注明细计算`,'warning');
+        }
         }
       }
     }
@@ -1068,24 +1135,28 @@ export function parseDocument(rawText, options = {}) {
       const expected = Math.round(chineseNumber(declared[1]) * 100);
       const amount = scope => scope.reduce((n,b)=>n+(b.status==='parsed'?b.totalCents:0),0);
       const marketTotal = new RegExp(`^总\\s*[:：=]?\\s*(?:\\d|[${CN}])`).test(declared[0]);
-      let scopes = closing ? [bets.filter(b=>b.line>=closing.firstLine&&b.endLine<=closing.line)] : marketTotal ? [marketBets] : /合计|总/.test(declared[0]) ? [messageBets] : [sectionBets,sinceCheck];
+      let scopes = closing ? [bets.filter(b=>b.line>=closing.firstLine&&b.endLine<=closing.line)] : marketTotal ? [marketBets] : /总/.test(declared[0]) ? [messageBets] : /合计/.test(declared[0]) ? [sinceCheck,messageBets] : [sectionBets,sinceCheck];
       if(declared===inlineSum){
         const lastBlank=lines.slice(0,line-1).findLastIndex(raw=>!raw.trim())+1;
         scopes=scopes.map(scope=>scope.filter(b=>b.line>lastBlank));
+      }
+      // A separate grand total may summarize consecutive, already checked
+      // inline subtotals. Restrict it to this paragraph and message.
+      if(!scopes.some(scope=>scope.length)&&!bets.some(b=>b.line===line)) {
+        const lastBlank=lines.slice(0,line-1).findLastIndex(raw=>!raw.trim())+1;
+        const checks=metadata.filter(m=>m.kind==='金额声明'&&m.line>lastBlank&&m.line<line&&m.fromLine&&m.expectedCents===m.actualCents);
+        const checked=messageBets.filter(b=>b.line>lastBlank);
+        if(checks.some(m=>m.line===line-1)&&checked.length&&checked.every(b=>checks.some(m=>m.fromLine<=b.line&&m.toLine>=b.endLine)))scopes=[checked];
       }
       const adjacent=!closing&&!marketTotal&&!/合计|总/.test(declared[0])?adjacentSubtotal(sinceCheck,line,issues,pending,contexts,metadata):[];
       const localMatch=adjacent.length>0&&amount(adjacent)===expected;
       const scope = localMatch ? adjacent : scopes.find(s=>s.length&&amount(s)===expected) || scopes.find(s=>s.length) || [];
       const actual = amount(scope);
       Object.assign(metadata.at(-1),{fromLine:scope[0]?.line,toLine:scope.at(-1)?.endLine,expectedCents:expected,actualCents:actual,...(localMatch?{subtotalRule:'R22',scopeKind:'adjacent-entry'}:{}),...(closing?{closingMarket:[...closing.markets]}:{})});
-      if (!Number.isSafeInteger(expected) || expected < 0) addIssue(line, line, original, 'TOTAL_INVALID', '声明的合计金额无效或超出精确计算范围');
+      if (!Number.isSafeInteger(expected) || expected < 0) addIssue(line, line, original, 'TOTAL_INVALID', '声明的合计金额无效或超出精确计算范围', 'warning');
       else if (!scope.length) addIssue(line, line, original, 'TOTAL_SCOPE', '识别到合计金额，但没有可核对的投注范围', 'warning');
       else if (actual !== expected) {
-        // Only a fully parsed, self-contained inline scope can be blocked as
-        // a definite contradiction. Broader/partial totals stay reminders.
-        const definite=scope.every(b=>b.line===line&&b.endLine===line&&b.status==='parsed')&&!pending&&!issues.some(i=>i.line<=line&&i.endLine>=line);
-        if(definite)scope.forEach(b=>{b.status='review';mark(b.line,b.endLine,'review');});
-        addIssue(line, line, original, 'TOTAL_MISMATCH', `原文合计${expected / 100}，第${scope[0].line}–${scope.at(-1).endLine}行已解析${actual / 100}，相差${(actual - expected) / 100}${definite?'；本行金额不符，暂不计账':''}`, definite?'error':'warning',definite?{affectedBetIds:scope.map(b=>b.id),ruleId:'R58'}:{});
+        addIssue(line, line, original, 'TOTAL_MISMATCH', `原文合计${expected / 100}，第${scope[0].line}–${scope.at(-1).endLine}行已解析${actual / 100}，相差${(actual - expected) / 100}；按投注明细计算`, 'warning');
       }
       sinceCheck = []; sectionBets = [];
     }

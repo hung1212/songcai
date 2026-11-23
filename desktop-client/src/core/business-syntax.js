@@ -2,7 +2,7 @@ import { ANIMALS, CN, MARKETS } from './rules.js';
 import {dottedAmounts,zodiacNumberAmounts,packageAmounts,perZodiacPackages} from './text-format.js';
 import { CATEGORY_ALIASES } from './classifications.js';
 
-export const PARSER_VERSION = 'parser-20261022-1';
+export const PARSER_VERSION = 'parser-20261123-1';
 export const COUNT_PATTERN = '(?:十[一二]?|[一二三四五六七八九两俩]|1[0-2]|[1-9])';
 const aliases = [];
 const add = (phrase, types, size, basis, canonical) => aliases.push({ phrase, types, size, basis, ...(canonical ? {canonical} : {}) });
@@ -81,6 +81,14 @@ export function playTokens(raw) {
   const packages=perZodiacPackages(view.text);
   const tokens = [...view.text.matchAll(playRegex())].map(m => {
     const phrase=m[0].replace(/[ \t]/g,''), span=view.span(m.index,m.index+m[0].length);
+    if(phrase==='特马'){
+      // 特 + 马 is a play followed by a selection, not a misspelled 特码.
+      // Keep the old alias for explicit number lists and standalone titles.
+      const suffix=view.text.slice(m.index+m[0].length).split(/[\r\n]/)[0];
+      const horse=new RegExp(`^[ \\t:：,，、./]*[${ANIMALS.join('')}]|^[ \\t]*(?:各|每|号码?|数字|数)|^[ \\t]*(?:\\d+(?:\\.\\d{1,2})?[十百千万]?|[${CN}]+)[ \\t]*[元米块斤钱]?[ \\t,，。;；.]*$`).test(suffix);
+      const range=horse?view.span(m.index,m.index+1):span;
+      return {...definitions.get('特码'),phrase:horse?'特':'特马',canonical:'特码',...range,quote:raw.slice(range.start,range.end),field:'play'};
+    }
     const perZodiac=packages.some(p=>m.index>=p.start&&m.index+m[0].length<=p.end)&&['一肖','1肖'].includes(phrase);
     const clause=view.text.slice(0,m.index).split(/[\n，,。;；]/).at(-1)+m[0]+view.text.slice(m.index+m[0].length).split(/[\n，,。;；]/)[0];
     const explicitSpecial=['独肖','一肖','1肖'].includes(phrase)&&/(?<!平)特\s*肖/.test(clause);
@@ -102,7 +110,7 @@ export function canonicalPlayText(raw) {
 
 // Consume qualified names before the bare 澳／奥 aliases, so 旧澳 and
 // 澳门旧 remain one old-market declaration rather than adding a new market.
-export const MARKET_PATTERN_SOURCE = /三边|3边|两边|二边|2边|(?:澳|奥)(?:门)?[ \t]*(?:新旧|新老|旧新|老新|旧|老|新)|(?:新旧|新老|旧新|老新)(?:[ \t]*(?:澳门|奥门|澳|奥))?|香港|新(?:[ \t]*(?:澳门|奥门|噢门|澳奥|澳|奥|门|凹))?|(?:老|旧)(?:[ \t]*(?:澳门|奥门|澳奥|澳|奥|门))?|港|香|澳门|奥门|澳|奥|门/.source;
+export const MARKET_PATTERN_SOURCE = /三边|3边|两边|二边|2边|(?:澳|奥)(?:门)?[ \t]*(?:新旧|新老|旧新|老新|旧|老|新)|(?:新旧|新老|旧新|老新)(?:[ \t]*(?:澳门|奥门|澳|奥))?|香港|新(?:[ \t]*(?:澳门|奥门|噢门|澳奥|澳|奥|门|凹))?|(?:老|旧)(?:[ \t]*(?:澳门|奥门|澳奥|澳|奥|门))?|港|香|澳门|奥门|噢门|澳|奥|门/.source;
 const marketPattern = new RegExp(MARKET_PATTERN_SOURCE, 'g');
 // Only an unlabelled three-digit prefix before a market is an issue remark.
 // Do not discard 01–49, numbers inside selections, or arbitrary long numbers.
@@ -181,7 +189,7 @@ export function senderHeader(raw, knownPlayer='') {
 export function statementEvidence(raw) {
   const view=sourceView(raw), tokens=[...playTokens(raw),...marketTokens(raw),...explicitIssueTokens(raw)];
   const issue=leadingIssuePrefix(raw);if(issue)tokens.push(issue);
-  const basis=/各(?:个?(?:号码?|数字|数)|肖|尾|组|注)?|每(?:个?(?:号码?|数字|数)|肖|尾|组|注|个)|整项/g;
+  const basis=/一个(?:号码?|数字|数)|各(?:个?(?:号码?|数字|数)|肖|尾|组|注)?|每(?:个?(?:号码?|数字|数)|肖|尾|组|注|个)|整项/g;
   for(const m of view.text.matchAll(basis)){const span=view.span(m.index,m.index+m[0].length);tokens.push({...span,quote:raw.slice(span.start,span.end),field:'basis'});}
   const amount=/(?:各(?:号|肖|尾|组|注)?|每(?:号|肖|尾|组|注)?|个(?:号码?|数字|数)|组|买|下|落|加|=)\s*([\d零〇一二三四五六七八九十百千万两壹贰貳叁參肆伍陆陸柒捌玖拾佰仟萬]+(?:\.\d{1,2})?)|([\d零〇一二三四五六七八九十百千万两壹贰貳叁參肆伍陆陸柒捌玖拾佰仟萬]+(?:\.\d{1,2})?)\s*(?:[元米块斤钱圆圓]|(?=[\s。.,，#＃;；]*$))/g;
   for(const m of view.text.matchAll(amount)) {

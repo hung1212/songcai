@@ -59,6 +59,15 @@ export async function checkRebateUI(context,project,input){
     if((await api.get({id:record.id})).result.rebateCents!==550)throw new Error('历史退水被覆盖');
     person(`${owner}`);await nextTick();field(`${owner} 平特肖（本命年）每万元退水`,'50');await save();
     if((await api.load({date:input.date})).settings.rebates[owner].playRates['flat-zodiac-year']!==5000)throw new Error('本命年退水未保存');
+    field(`${owner} 平特尾（0尾）每万元退水`,'50');field(`${owner} 平特尾（非0尾）每万元退水`,'100');await save();
+    let tailRates=(await api.load({date:input.date})).settings.rebates[owner].playRates;
+    if(tailRates['flat-tail-zero']!==5000||tailRates['flat-tail-nonzero']!==10000)throw new Error('0尾与非0尾退水未独立保存');
+    field(`${owner} 平特尾（0尾）每万元退水`,'0');await save();
+    tailRates=(await api.load({date:input.date})).settings.rebates[owner].playRates;
+    if(tailRates['flat-tail-zero']!==0||tailRates['flat-tail-nonzero']!==10000)throw new Error('关闭0尾影响非0尾退水');
+    field(`${owner} 平特尾（0尾）每万元退水`,'');await save();
+    tailRates=(await api.load({date:input.date})).settings.rebates[owner].playRates;
+    if(Object.hasOwn(tailRates,'flat-tail-zero')||tailRates['flat-tail-nonzero']!==10000)throw new Error('0尾清空未恢复默认');
     host.querySelectorAll('[role="tab"]')[1].click();await nextTick();
     field(`${owner} 新 特肖／一肖中特普通赔率`,'10');field(`${owner} 新 平特肖普通赔率`,'2.4');field(`${owner} 新 平特肖本命年赔率`,'1.6');await nextTick();
     person('张三');await nextTick();

@@ -5,14 +5,23 @@ export const REBATE_PLAYS=[
   ...[2,3,4,5,6].map(n=>row(`special-zodiac-any-${n}`,`${n}肖中特`,'特肖')),
   row('linked-number-2-2','二中二','连码'),row('linked-number-3-3','三中三','连码'),row('linked-number-3-2','三中二','连码'),row('linked-number-2-special','二中特','连码'),row('special-pair','特串','连码'),
   ...[2,3,4,5].map(n=>row(`linked-zodiac-${n}`,`${n}连肖`,'连肖')),
-  row('flat-zodiac','平特肖','平特'),row('flat-zodiac-year','平特肖（本命年）','平特'),row('flat-tail','平特尾','平特'),row('flat-number','平码','平特'),row('flat-seven-number','平特号码（含特码）','平特'),
+  row('flat-zodiac','平特肖','平特'),row('flat-zodiac-year','平特肖（本命年）','平特'),row('flat-tail-zero','平特尾（0尾）','平特'),row('flat-tail-nonzero','平特尾（非0尾）','平特'),row('flat-number','平码','平特'),row('flat-seven-number','平特号码（含特码）','平特'),
   ...[1,2,3,4,5].map(n=>row(`flat-any-${n}`,`${n}粒平特任中`,'平特')),
   ...[2,3,4].map(n=>row(`linked-tail-${n}`,`${n}连尾`,'连尾')),
   ...[5,6,7,8,9,10].map(n=>row(`not-hit-${n}`,`${n}不中`,'不中')),
   row('attribute','大小单双／合单合双','大小单双'),
 ];
-export const REBATE_PLAY_IDS=new Set(REBATE_PLAYS.map(p=>p.id));
-const names=new Map(REBATE_PLAYS.map(p=>[p.id,p.name]));
+export const REBATE_PLAY_IDS=new Set([...REBATE_PLAYS.map(p=>p.id),'flat-tail']);
+const names=new Map([...REBATE_PLAYS.map(p=>[p.id,p.name]),['flat-tail','平特尾']]);
+// Upgrade the old shared rate without overwriting an explicit new rate, including zero.
+export function splitTailRebateRates(rates={}) {
+  const next={...rates};
+  if(Object.hasOwn(next,'flat-tail')){
+    for(const key of ['flat-tail-zero','flat-tail-nonzero'])if(!Object.hasOwn(next,key))next[key]=next['flat-tail'];
+    delete next['flat-tail'];
+  }
+  return next;
+}
 export function rebatePlayKey(bet) {
   if(bet.rebatePlayKey)return bet.rebatePlayKey;
   const type=bet.playType;
